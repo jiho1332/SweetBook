@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sweetbook.mapper.PetMapper">
+
+    <resultMap id="petMap" type="com.sweetbook.vo.PetVO">
+        <id property="petId" column="pet_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="name" column="name"/>
+        <result property="color" column="color"/>
+        <result property="breed" column="breed"/>
+        <result property="relationshipLabel" column="relationship_label"/>
+        <result property="memorialDate" column="memorial_date"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insertPet"
+            parameterType="com.sweetbook.vo.PetVO"
+            useGeneratedKeys="true"
+            keyProperty="petId">
+        INSERT INTO pet (
+            member_id,
+            name,
+            color,
+            breed,
+            relationship_label,
+            memorial_date
+        ) VALUES (
+            #{memberId},
+            #{name},
+            #{color},
+            #{breed},
+            #{relationshipLabel},
+            #{memorialDate}
+        )
+    </insert>
+
+    <select id="selectPetById" parameterType="long" resultMap="petMap">
+        SELECT
+            pet_id,
+            member_id,
+            name,
+            color,
+            breed,
+            relationship_label,
+            memorial_date,
+            created_at
+        FROM pet
+        WHERE pet_id = #{petId}
+    </select>
+
+    <select id="selectPetList" resultMap="petMap">
+        SELECT
+            pet_id,
+            member_id,
+            name,
+            color,
+            breed,
+            relationship_label,
+            memorial_date,
+            created_at
+        FROM pet
+        ORDER BY pet_id DESC
+    </select>
+
+    <select id="selectPetListByMemberId" parameterType="long" resultMap="petMap">
+        SELECT
+            pet_id,
+            member_id,
+            name,
+            color,
+            breed,
+            relationship_label,
+            memorial_date,
+            created_at
+        FROM pet
+        WHERE member_id = #{memberId}
+        ORDER BY pet_id DESC
+    </select>
+
+    <update id="updatePet" parameterType="com.sweetbook.vo.PetVO">
+        UPDATE pet
+        SET
+            name = #{name},
+            color = #{color},
+            breed = #{breed},
+            relationship_label = #{relationshipLabel},
+            memorial_date = #{memorialDate}
+        WHERE pet_id = #{petId}
+    </update>
+
+    <delete id="deletePet" parameterType="long">
+        DELETE FROM pet
+        WHERE pet_id = #{petId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sweetbook.mapper.BookProjectMapper">
+
+    <resultMap id="bookProjectMap" type="com.sweetbook.vo.BookProjectVO">
+        <id property="bookProjectId" column="book_project_id"/>
+        <result property="petId" column="pet_id"/>
+        <result property="title" column="title"/>
+        <result property="coverTitle" column="cover_title"/>
+        <result property="coverSubtitle" column="cover_subtitle"/>
+        <result property="dedicationText" column="dedication_text"/>
+        <result property="templateCode" column="template_code"/>
+        <result property="bookSpecCode" column="book_spec_code"/>
+        <result property="sweetbookBookId" column="sweetbook_book_id"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="finalizedAt" column="finalized_at"/>
+    </resultMap>
+
+    <insert id="insertBookProject"
+            parameterType="com.sweetbook.vo.BookProjectVO"
+            useGeneratedKeys="true"
+            keyProperty="bookProjectId">
+        INSERT INTO book_project (
+            pet_id,
+            title,
+            cover_title,
+            cover_subtitle,
+            dedication_text,
+            template_code,
+            book_spec_code,
+            sweetbook_book_id,
+            status
+        ) VALUES (
+            #{petId},
+            #{title},
+            #{coverTitle},
+            #{coverSubtitle},
+            #{dedicationText},
+            #{templateCode},
+            #{bookSpecCode},
+            #{sweetbookBookId},
+            #{status}
+        )
+    </insert>
+
+    <select id="selectBookProjectById" parameterType="long" resultMap="bookProjectMap">
+        SELECT
+            book_project_id,
+            pet_id,
+            title,
+            cover_title,
+            cover_subtitle,
+            dedication_text,
+            template_code,
+            book_spec_code,
+            sweetbook_book_id,
+            status,
+            created_at,
+            finalized_at
+        FROM book_project
+        WHERE book_project_id = #{bookProjectId}
+    </select>
+
+    <select id="selectBookProjectListByPetId" parameterType="long" resultMap="bookProjectMap">
+        SELECT
+            book_project_id,
+            pet_id,
+            title,
+            cover_title,
+            cover_subtitle,
+            dedication_text,
+            template_code,
+            book_spec_code,
+            sweetbook_book_id,
+            status,
+            created_at,
+            finalized_at
+        FROM book_project
+        WHERE pet_id = #{petId}
+        ORDER BY book_project_id DESC
+    </select>
+
+    <update id="updateBookProject" parameterType="com.sweetbook.vo.BookProjectVO">
+        UPDATE book_project
+        SET
+            title = #{title},
+            cover_title = #{coverTitle},
+            cover_subtitle = #{coverSubtitle},
+            dedication_text = #{dedicationText},
+            template_code = #{templateCode},
+            book_spec_code = #{bookSpecCode},
+            status = #{status}
+        WHERE book_project_id = #{bookProjectId}
+    </update>
+
+    <delete id="deleteBookProject" parameterType="long">
+        DELETE FROM book_project
+        WHERE book_project_id = #{bookProjectId}
+    </delete>
+
+    <update id="updateBookProjectStatus">
+        UPDATE book_project
+        SET status = #{status}
+        WHERE book_project_id = #{bookProjectId}
+    </update>
+
+    <update id="updateBookCreated">
+        UPDATE book_project
+        SET sweetbook_book_id = #{sweetbookBookId},
+            status = #{status}
+        WHERE book_project_id = #{bookProjectId}
+    </update>
+
+    <update id="updateBookFinalized">
+        UPDATE book_project
+        SET status = #{status},
+            finalized_at = NOW()
+        WHERE book_project_id = #{bookProjectId}
+    </update>
+
+</mapper>
