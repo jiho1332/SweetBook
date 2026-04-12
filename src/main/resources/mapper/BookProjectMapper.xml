@@ -65,6 +65,24 @@
         WHERE book_project_id = #{bookProjectId}
     </select>
 
+    <select id="selectBookProjectList" resultMap="bookProjectMap">
+        SELECT
+            book_project_id,
+            pet_id,
+            title,
+            cover_title,
+            cover_subtitle,
+            dedication_text,
+            template_code,
+            book_spec_code,
+            sweetbook_book_id,
+            status,
+            created_at,
+            finalized_at
+        FROM book_project
+        ORDER BY book_project_id DESC
+    </select>
+
     <select id="selectBookProjectListByPetId" parameterType="long" resultMap="bookProjectMap">
         SELECT
             book_project_id,

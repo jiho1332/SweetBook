@@ -13,6 +13,8 @@ public interface BookProjectMapper {
 
     BookProjectVO selectBookProjectById(Long bookProjectId);
 
+    List<BookProjectVO> selectBookProjectList();
+
     List<BookProjectVO> selectBookProjectListByPetId(Long petId);
 
     int updateBookProject(BookProjectVO bookProjectVO);

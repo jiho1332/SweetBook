@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sweetbook.mapper.MemoryMapper">
+
+    <resultMap id="memoryMap" type="com.sweetbook.vo.MemoryVO">
+        <id property="memoryId" column="memory_id"/>
+        <result property="petId" column="pet_id"/>
+        <result property="chapterType" column="chapter_type"/>
+        <result property="displayOrder" column="display_order"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="isRepresentative" column="is_representative"/>
+        <result property="recordedAt" column="recorded_at"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insertMemory"
+            parameterType="com.sweetbook.vo.MemoryVO"
+            useGeneratedKeys="true"
+            keyProperty="memoryId">
+        INSERT INTO memory (
+            pet_id,
+            chapter_type,
+            display_order,
+            title,
+            content,
+            image_url,
+            is_representative,
+            recorded_at
+        ) VALUES (
+            #{petId},
+            #{chapterType},
+            #{displayOrder},
+            #{title},
+            #{content},
+            #{imageUrl},
+            #{isRepresentative},
+            #{recordedAt}
+        )
+    </insert>
+
+    <select id="selectMemoryById" parameterType="long" resultMap="memoryMap">
+        SELECT
+            memory_id,
+            pet_id,
+            chapter_type,
+            display_order,
+            title,
+            content,
+            image_url,
+            is_representative,
+            recorded_at,
+            created_at
+        FROM memory
+        WHERE memory_id = #{memoryId}
+    </select>
+
+    <select id="selectMemoryList" resultMap="memoryMap">
+        SELECT
+            memory_id,
+            pet_id,
+            chapter_type,
+            display_order,
+            title,
+            content,
+            image_url,
+            is_representative,
+            recorded_at,
+            created_at
+        FROM memory
+        ORDER BY memory_id DESC
+    </select>
+
+    <select id="selectMemoryListByPetId" parameterType="long" resultMap="memoryMap">
+        SELECT
+            memory_id,
+            pet_id,
+            chapter_type,
+            display_order,
+            title,
+            content,
+            image_url,
+            is_representative,
+            recorded_at,
+            created_at
+        FROM memory
+        WHERE pet_id = #{petId}
+        ORDER BY
+            CASE chapter_type
+                WHEN 'INTRO' THEN 1
+                WHEN 'DAILY' THEN 2
+                WHEN 'ILLNESS' THEN 3
+                WHEN 'FAREWELL' THEN 4
+                WHEN 'AFTER' THEN 5
+                ELSE 99
+            END,
+            display_order ASC,
+            memory_id ASC
+    </select>
+
+    <update id="updateMemory" parameterType="com.sweetbook.vo.MemoryVO">
+        UPDATE memory
+        SET
+            chapter_type = #{chapterType},
+            display_order = #{displayOrder},
+            title = #{title},
+            content = #{content},
+            image_url = #{imageUrl},
+            is_representative = #{isRepresentative},
+            recorded_at = #{recordedAt}
+        WHERE memory_id = #{memoryId}
+    </update>
+
+    <delete id="deleteMemory" parameterType="long">
+        DELETE FROM memory
+        WHERE memory_id = #{memoryId}
+    </delete>
+
+</mapper>
