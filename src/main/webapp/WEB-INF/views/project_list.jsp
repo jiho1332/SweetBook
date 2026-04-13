@@ -21,6 +21,11 @@
         li {
             margin: 10px 0;
         }
+        .box {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
@@ -28,9 +33,9 @@
 
 <h1>📚 SweetBook 프로젝트</h1>
 
-<!-- 프로젝트 생성 -->
 <h3>프로젝트 생성</h3>
 
+<input type="number" id="petId" placeholder="petId 입력">
 <input type="text" id="title" placeholder="제목">
 <input type="text" id="description" placeholder="설명">
 
@@ -38,35 +43,36 @@
 
 <hr>
 
-<!-- 프로젝트 목록 -->
-<h3>프로젝트 목록</h3>
+<h3>로컬 프로젝트 목록</h3>
 <ul id="projectList"></ul>
 
 <script>
-
-    // 페이지 로드 시 실행
     $(document).ready(function () {
         loadProjects();
     });
 
-    // 프로젝트 목록 조회
     function loadProjects() {
         $.ajax({
-            url: "/projects",
+            url: "/api/book-projects",
             type: "GET",
             success: function (data) {
-
                 let html = "";
 
                 data.forEach(function (project) {
+                    html += "<li class='box'>";
+                    html += "<b>제목:</b> " + project.title + "<br>";
+                    html += "<b>설명:</b> " + (project.description || "없음") + "<br>";
+                    html += "<b>상태:</b> " + project.status + "<br>";
+                    html += "<b>petId:</b> " + (project.petId || "없음") + "<br>";
 
-                    html += "<li>";
-                    html += "<b>" + project.title + "</b>";
-                    html += " (" + (project.description || "설명 없음") + ")";
-                    html += " [상태: " + project.status + "]";
-                    html += " <button onclick='deleteProject(" + project.projectId + ")'>삭제</button>";
+                    if (project.petId != null) {
+                        html += "<button onclick='goBookPage(" + project.petId + ")'>📘 책 만들기</button>";
+                    } else {
+                        html += "<span style='color:red'>petId 없음 → 책 생성 불가</span>";
+                    }
+
+                    html += "<button onclick='deleteProject(" + project.bookProjectId + ")'>삭제</button>";
                     html += "</li>";
-
                 });
 
                 $("#projectList").html(html);
@@ -77,18 +83,22 @@
         });
     }
 
-    // 프로젝트 생성
-    function createProject() {
+    function goBookPage(petId) {
+        localStorage.setItem("sweetbook_petId", petId);
+        location.href = "/book_test.jsp?petId=" + petId;
+    }
 
+    function createProject() {
         const data = {
-            memberId: 1,  // 테스트용
+            memberId: 1,
+            petId: $("#petId").val(),
             title: $("#title").val(),
             description: $("#description").val(),
             status: "DRAFT"
         };
 
         $.ajax({
-            url: "/projects",
+            url: "/api/book-projects",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify(data),
@@ -102,11 +112,9 @@
         });
     }
 
-    // 프로젝트 삭제
-    function deleteProject(projectId) {
-
+    function deleteProject(bookProjectId) {
         $.ajax({
-            url: "/projects/" + projectId,
+            url: "/api/book-projects/" + bookProjectId,
             type: "DELETE",
             success: function () {
                 alert("삭제 완료");
@@ -117,7 +125,6 @@
             }
         });
     }
-
 </script>
 
 </body>

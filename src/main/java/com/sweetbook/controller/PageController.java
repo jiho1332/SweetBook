@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class PageController {
 
-    @GetMapping("/projects/view")
-    public String projectListPage() {
-        return "project_list";
+    @GetMapping("/test/book")
+    public String bookTestPage() {
+        return "book_test";
     }
 }
