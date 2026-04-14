@@ -7,12 +7,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -29,20 +30,29 @@ public class BookProjectController {
     }
 
     @PostMapping
-    public ResponseEntity<Long> createBookProject(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Long> createBookProject(
+            @RequestParam("petName") String petName,
+            @RequestParam(value = "memorialDate", required = false) String memorialDate,
+            @RequestParam("title") String title,
+            @RequestParam("coverTitle") String coverTitle,
+            @RequestParam(value = "coverSubtitle", required = false) String coverSubtitle,
+            @RequestParam(value = "dedicationText", required = false) String dedicationText,
+            @RequestParam("templateCode") String templateCode,
+            @RequestParam("bookSpecCode") String bookSpecCode,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "file", required = false) MultipartFile file
+    ) {
+        Long memberId = 1L;
 
-        Long memberId = parseLong(request.get("memberId"), 1L);
-        String petName = parseString(request.get("petName"));
-        String profileImageUrl = parseString(request.get("profileImageUrl"));
-        String memorialDate = parseString(request.get("memorialDate"));
-
-        String title = parseString(request.get("title"));
-        String coverTitle = parseString(request.get("coverTitle"));
-        String coverSubtitle = parseString(request.get("coverSubtitle"));
-        String dedicationText = parseString(request.get("dedicationText"));
-        String templateCode = parseString(request.get("templateCode"));
-        String bookSpecCode = parseString(request.get("bookSpecCode"));
-        String status = parseString(request.get("status"));
+        petName = safe(petName);
+        memorialDate = safe(memorialDate);
+        title = safe(title);
+        coverTitle = safe(coverTitle);
+        coverSubtitle = safe(coverSubtitle);
+        dedicationText = safe(dedicationText);
+        templateCode = safe(templateCode);
+        bookSpecCode = safe(bookSpecCode);
+        status = safe(status);
 
         if (petName.isBlank()) {
             throw new IllegalArgumentException("반려견 이름을 입력해주세요.");
@@ -63,6 +73,7 @@ public class BookProjectController {
             status = "DRAFT";
         }
 
+        String profileImageUrl = saveProfileImage(file);
         Long petId = createPet(memberId, petName, profileImageUrl, memorialDate);
 
         BookProjectVO bookProjectVO = new BookProjectVO();
@@ -136,13 +147,13 @@ public class BookProjectController {
             ps.setString(2, petToken);
             ps.setString(3, petName);
 
-            if (profileImageUrl.isBlank()) {
+            if (profileImageUrl == null || profileImageUrl.isBlank()) {
                 ps.setNull(4, Types.VARCHAR);
             } else {
                 ps.setString(4, profileImageUrl);
             }
 
-            if (memorialDate.isBlank()) {
+            if (memorialDate == null || memorialDate.isBlank()) {
                 ps.setNull(5, Types.DATE);
             } else {
                 ps.setDate(5, java.sql.Date.valueOf(memorialDate));
@@ -159,21 +170,41 @@ public class BookProjectController {
         return key.longValue();
     }
 
-    private Long parseLong(Object value, Long defaultValue) {
-        if (value == null) {
-            return defaultValue;
+    private String saveProfileImage(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return null;
         }
-        if (value instanceof Number number) {
-            return number.longValue();
+
+        try {
+            String uploadDirPath = System.getProperty("user.dir") + File.separator + "uploads" + File.separator + "pet";
+            File uploadDir = new File(uploadDirPath);
+
+            if (!uploadDir.exists() && !uploadDir.mkdirs()) {
+                throw new IllegalStateException("업로드 폴더를 생성하지 못했습니다.");
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+
+            if (originalFilename != null) {
+                int dotIndex = originalFilename.lastIndexOf(".");
+                if (dotIndex >= 0) {
+                    extension = originalFilename.substring(dotIndex);
+                }
+            }
+
+            String savedFileName = UUID.randomUUID().toString().replace("-", "") + extension;
+            File dest = new File(uploadDir, savedFileName);
+            file.transferTo(dest);
+
+            return "/uploads/pet/" + savedFileName;
+
+        } catch (Exception e) {
+            throw new RuntimeException("대표 사진 저장 실패: " + e.getMessage(), e);
         }
-        String str = value.toString().trim();
-        if (str.isBlank()) {
-            return defaultValue;
-        }
-        return Long.parseLong(str);
     }
 
-    private String parseString(Object value) {
-        return value == null ? "" : value.toString().trim();
+    private String safe(String value) {
+        return value == null ? "" : value.trim();
     }
 }
