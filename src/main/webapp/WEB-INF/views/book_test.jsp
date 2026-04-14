@@ -1,124 +1,177 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
-    <title>SweetBook 생성 테스트</title>
+    <title>추억 책 프로젝트 작성</title>
 
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 30px;
+            margin: 0;
+            background: #f7f1e8;
+            color: #3b2f2f;
         }
 
-        h2, h3 {
-            margin-bottom: 15px;
+        .wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #f5e6d3, #f8f3ec);
+            border-radius: 24px;
+            padding: 36px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .hero h1 {
+            margin: 0 0 10px;
+            font-size: 34px;
+        }
+
+        .hero p {
+            margin: 0;
+            color: #6b5b53;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: #fffdf9;
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            margin: 0 0 20px;
+            font-size: 22px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 20px;
         }
 
         .row {
-            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .row.full {
+            grid-column: 1 / -1;
         }
 
         label {
-            display: inline-block;
-            width: 140px;
+            margin-bottom: 8px;
             font-weight: bold;
+            color: #5a463d;
         }
 
-        select, input {
-            padding: 6px;
-            min-width: 320px;
+        input, select, textarea {
+            padding: 12px 14px;
+            border: 1px solid #dbcfc2;
+            border-radius: 12px;
+            background: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .btn-area {
+            margin-top: 22px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         button {
-            padding: 8px 14px;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
             cursor: pointer;
-            margin-right: 8px;
+            font-size: 14px;
+            font-weight: bold;
         }
 
-        .info {
-            margin-bottom: 20px;
-            color: #444;
+        .btn-main {
+            background: #d98d52;
+            color: white;
+        }
+
+        .btn-sub {
+            background: #ead7c4;
+            color: #5c4638;
+        }
+
+        .info-box, .result-box, .list-box, .guide-box {
+            margin-top: 22px;
+            padding: 16px;
+            border-radius: 14px;
+            background: #fff;
+            border: 1px solid #eadfce;
+        }
+
+        .info-item {
+            margin: 6px 0;
+            color: #6e5b50;
         }
 
         .result-box {
-            margin-top: 25px;
-            padding: 12px;
-            border: 1px solid #ddd;
-            background-color: #fafafa;
             white-space: pre-wrap;
+            line-height: 1.5;
+            overflow-x: auto;
         }
 
-        .list-box {
-            margin-top: 25px;
-            padding: 12px;
-            border: 1px solid #ddd;
-            background-color: #fff;
+        .guide-box {
+            background: #fcf8f2;
+            color: #6a584f;
+            line-height: 1.7;
+        }
+
+        .guide-box strong {
+            color: #49362d;
         }
 
         ul {
             padding-left: 20px;
+            margin: 0;
         }
 
         li {
             margin-bottom: 10px;
         }
+
+        .hint {
+            margin-top: 6px;
+            font-size: 13px;
+            color: #7a675c;
+        }
     </style>
 
     <script>
+        let savedProjectId = null;
+        let allTemplates = [];
+        let allBookSpecs = [];
+
         window.onload = function () {
-            const petId = resolvePetId();
-
-            document.getElementById("petId").value = petId ? petId : "";
-            document.getElementById("petIdText").innerText = petId ? petId : "-";
-
-            loadTemplates();
             loadBookSpecs();
+            loadTemplates();
             loadExternalBooks();
-
-            if (!petId) {
-                document.getElementById("result").innerText =
-                    "petId가 없습니다. project_list.jsp에서 이동하거나 아래에 직접 입력해주세요.";
-            }
         };
 
-        function getPetIdFromUrl() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get("petId");
+        function setResult(message) {
+            document.getElementById("result").innerText = message;
         }
 
-        function resolvePetId() {
-            const urlPetId = getPetIdFromUrl();
-            if (urlPetId) {
-                localStorage.setItem("sweetbook_petId", urlPetId);
-                return urlPetId;
-            }
-
-            const savedPetId = localStorage.getItem("sweetbook_petId");
-            if (savedPetId) {
-                return savedPetId;
-            }
-
-            return "";
-        }
-
-        function updatePetId() {
-            const petId = document.getElementById("petId").value.trim();
-            document.getElementById("petIdText").innerText = petId ? petId : "-";
-
-            if (petId) {
-                localStorage.setItem("sweetbook_petId", petId);
-                const newUrl = window.location.pathname + "?petId=" + encodeURIComponent(petId);
-                history.replaceState(null, "", newUrl);
-                document.getElementById("result").innerText = "petId가 설정되었습니다: " + petId;
-            } else {
-                localStorage.removeItem("sweetbook_petId");
-                history.replaceState(null, "", window.location.pathname);
-                document.getElementById("result").innerText = "petId가 비어 있습니다.";
-            }
-        }
-
-        function getCurrentPetId() {
-            const petId = document.getElementById("petId").value.trim();
-            return petId;
+        function setTemplateGuide(message) {
+            document.getElementById("templateGuide").innerText = message;
         }
 
         function loadTemplates() {
@@ -130,27 +183,17 @@
                     return response.json();
                 })
                 .then(data => {
-                    const templateSelect = document.getElementById("templateSelect");
-                    templateSelect.innerHTML = "";
-
-                    if (!data.data || !data.data.templates || data.data.templates.length === 0) {
-                        const option = document.createElement("option");
-                        option.value = "";
-                        option.text = "템플릿 없음";
-                        templateSelect.appendChild(option);
+                    if (!data.data || !data.data.templates) {
+                        allTemplates = [];
+                        renderTemplateOptions();
                         return;
                     }
 
-                    data.data.templates.forEach(template => {
-                        const option = document.createElement("option");
-                        option.value = template.templateUid;
-                        option.text = template.templateName + " (" + template.templateUid + ")";
-                        templateSelect.appendChild(option);
-                    });
+                    allTemplates = data.data.templates;
+                    renderTemplateOptions();
                 })
                 .catch(error => {
-                    document.getElementById("result").innerText =
-                        "템플릿 목록 불러오기 실패: " + error.message;
+                    setResult("템플릿 목록 불러오기 실패: " + error.message);
                 });
         }
 
@@ -163,7 +206,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    const bookSpecSelect = document.getElementById("bookSpecSelect");
+                    const bookSpecSelect = document.getElementById("bookSpecCode");
                     bookSpecSelect.innerHTML = "";
 
                     if (!data.data || data.data.length === 0) {
@@ -174,17 +217,109 @@
                         return;
                     }
 
+                    allBookSpecs = data.data;
+
                     data.data.forEach(spec => {
                         const option = document.createElement("option");
                         option.value = spec.bookSpecUid;
                         option.text = spec.name + " (" + spec.bookSpecUid + ")";
                         bookSpecSelect.appendChild(option);
                     });
+
+                    bookSpecSelect.addEventListener("change", function () {
+                        renderTemplateOptions();
+                    });
+
+                    renderTemplateOptions();
                 })
                 .catch(error => {
-                    document.getElementById("result").innerText =
-                        "판형 목록 불러오기 실패: " + error.message;
+                    setResult("판형 목록 불러오기 실패: " + error.message);
                 });
+        }
+
+        function isSafeTemplate(template) {
+            const templateKind = (template.templateKind || "").trim();
+            const templateName = (template.templateName || "").trim();
+
+            if (templateKind !== "content") {
+                return false;
+            }
+
+            if (
+                templateName.includes("월시작") ||
+                templateName.includes("monthHeader") ||
+                templateName.includes("dateA") ||
+                templateName.includes("dateB")
+            ) {
+                return false;
+            }
+
+            if (
+                templateName.includes("gallery") ||
+                templateName.includes("photo") ||
+                templateName.includes("빈내지") ||
+                templateName === "내지" ||
+                templateName.startsWith("내지 ")
+            ) {
+                return true;
+            }
+
+            if (templateName.startsWith("내지")) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function renderTemplateOptions() {
+            const templateSelect = document.getElementById("templateCode");
+            const selectedBookSpecCode = document.getElementById("bookSpecCode").value;
+
+            templateSelect.innerHTML = "";
+
+            if (!selectedBookSpecCode) {
+                const option = document.createElement("option");
+                option.value = "";
+                option.text = "먼저 판형을 선택해주세요";
+                templateSelect.appendChild(option);
+                setTemplateGuide("판형을 먼저 선택하면, 해당 판형에서 사용 가능한 안전한 내지 템플릿만 보여드립니다.");
+                return;
+            }
+
+            if (!allTemplates || allTemplates.length === 0) {
+                const option = document.createElement("option");
+                option.value = "";
+                option.text = "템플릿 없음";
+                templateSelect.appendChild(option);
+                setTemplateGuide("템플릿 목록을 아직 불러오지 못했습니다.");
+                return;
+            }
+
+            const filteredTemplates = allTemplates.filter(template => {
+                const sameBookSpec = (template.bookSpecUid || "") === selectedBookSpecCode;
+                return sameBookSpec && isSafeTemplate(template);
+            });
+
+            if (filteredTemplates.length === 0) {
+                const option = document.createElement("option");
+                option.value = "";
+                option.text = "선택 가능한 템플릿이 없습니다";
+                templateSelect.appendChild(option);
+                setTemplateGuide("현재 선택한 판형에서 안전하게 사용할 수 있는 템플릿이 없습니다.");
+                return;
+            }
+
+            filteredTemplates.forEach(template => {
+                const option = document.createElement("option");
+                option.value = template.templateUid;
+                option.text = template.templateName + " (" + template.bookSpecName + ")";
+                templateSelect.appendChild(option);
+            });
+
+            setTemplateGuide(
+                "현재는 오류 가능성이 높은 월시작 / monthHeader / dateA / dateB 템플릿은 숨기고, " +
+                "gallery / photo / 빈내지 / 내지 계열만 보여드리고 있습니다."
+            );
         }
 
         function loadExternalBooks() {
@@ -219,69 +354,108 @@
                 });
         }
 
-        function previewBook() {
-            const petId = getCurrentPetId();
-            const templateCode = document.getElementById("templateSelect").value;
-            const bookSpecCode = document.getElementById("bookSpecSelect").value;
+        function collectProjectData() {
+            return {
+                petName: document.getElementById("petName").value.trim(),
+                profileImageUrl: document.getElementById("profileImageUrl").value.trim(),
+                memorialDate: document.getElementById("memorialDate").value.trim(),
+                title: document.getElementById("title").value.trim(),
+                coverTitle: document.getElementById("coverTitle").value.trim(),
+                coverSubtitle: document.getElementById("coverSubtitle").value.trim(),
+                dedicationText: document.getElementById("dedicationText").value.trim(),
+                templateCode: document.getElementById("templateCode").value,
+                bookSpecCode: document.getElementById("bookSpecCode").value,
+                status: "DRAFT"
+            };
+        }
 
-            if (!petId) {
-                alert("petId를 입력하거나 project_list.jsp에서 이동해주세요.");
+        function validateProjectData(project) {
+            if (!project.petName) {
+                alert("반려견 이름을 입력해주세요.");
+                return false;
+            }
+            if (!project.title) {
+                alert("책 제목을 입력해주세요.");
+                return false;
+            }
+            if (!project.coverTitle) {
+                alert("표지 제목을 입력해주세요.");
+                return false;
+            }
+            if (!project.bookSpecCode) {
+                alert("판형을 선택해주세요.");
+                return false;
+            }
+            if (!project.templateCode) {
+                alert("템플릿을 선택해주세요.");
+                return false;
+            }
+            return true;
+        }
+
+        function saveBookProject() {
+            const project = collectProjectData();
+
+            if (!validateProjectData(project)) {
                 return;
             }
 
-            if (!templateCode || !bookSpecCode) {
-                alert("템플릿과 판형을 선택해주세요.");
-                return;
-            }
-
-            const url = "/api/books/projects/" + petId
-                + "/preview?templateCode=" + encodeURIComponent(templateCode)
-                + "&bookSpecCode=" + encodeURIComponent(bookSpecCode);
-
-            fetch(url)
+            fetch("/api/book-projects", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(project)
+            })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error("미리보기 조회 실패");
+                        return response.text().then(text => {
+                            throw new Error(text || "책 프로젝트 저장 실패");
+                        });
+                    }
+                    return response.text();
+                })
+                .then(bookProjectId => {
+                    savedProjectId = bookProjectId;
+                    document.getElementById("savedProjectId").innerText = bookProjectId;
+                    setResult("책 프로젝트 저장 완료. bookProjectId = " + bookProjectId);
+                })
+                .catch(error => {
+                    setResult("책 프로젝트 저장 실패: " + error.message);
+                });
+        }
+
+        function previewBook() {
+            if (!savedProjectId) {
+                alert("먼저 프로젝트 저장을 해주세요.");
+                return;
+            }
+
+            fetch("/api/books/book-projects/" + savedProjectId + "/preview")
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text || "미리보기 조회 실패");
+                        });
                     }
                     return response.json();
                 })
                 .then(data => {
-                    document.getElementById("result").innerText =
-                        JSON.stringify(data, null, 2);
+                    setResult(JSON.stringify(data, null, 2));
                 })
                 .catch(error => {
-                    document.getElementById("result").innerText =
-                        "미리보기 실패: " + error.message;
+                    setResult("미리보기 실패: " + error.message);
                 });
         }
 
         function submitBookCreate() {
-            const petId = getCurrentPetId();
-            const templateCode = document.getElementById("templateSelect").value;
-            const bookSpecCode = document.getElementById("bookSpecSelect").value;
-
-            if (!petId) {
-                alert("petId를 입력하거나 project_list.jsp에서 이동해주세요.");
+            if (!savedProjectId) {
+                alert("먼저 프로젝트 저장을 해주세요.");
                 return;
             }
 
-            if (!templateCode || !bookSpecCode) {
-                alert("템플릿과 판형을 선택해주세요.");
-                return;
-            }
-
-            localStorage.setItem("sweetbook_petId", petId);
-
-            const formData = new URLSearchParams();
-            formData.append("templateCode", templateCode);
-            formData.append("bookSpecCode", bookSpecCode);
-
-            fetch("/api/books/projects/" + petId + "/create", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                },
-                body: formData.toString()
+            fetch("/api/books/book-projects/" + savedProjectId + "/create", {
+                method: "POST"
             })
                 .then(response => {
                     if (!response.ok) {
@@ -292,50 +466,109 @@
                     return response.text();
                 })
                 .then(data => {
-                    document.getElementById("result").innerText = data;
+                    setResult(data);
                     loadExternalBooks();
                 })
                 .catch(error => {
-                    document.getElementById("result").innerText =
-                        "책 생성 실패: " + error.message;
+                    setResult("책 생성 실패: " + error.message);
                 });
         }
     </script>
 </head>
 <body>
 
-<h2>📘 SweetBook 생성 테스트</h2>
+<div class="wrap">
+    <div class="hero">
+        <h1>반려견과의 기억을 책으로 남겨보세요</h1>
+        <p>
+            반려견과 함께한 소중한 순간을 기록하고,<br>
+            표지 문구와 헌정 문구를 담아 나만의 추억 책 프로젝트를 만들어보세요.
+        </p>
+    </div>
 
-<div class="info">
-    현재 petId: <span id="petIdText">-</span>
-</div>
+    <div class="card">
+        <h2 class="section-title">📘 책 프로젝트 작성</h2>
 
-<div class="row">
-    <label for="petId">petId 입력</label>
-    <input type="number" id="petId" placeholder="petId 입력">
-    <button type="button" onclick="updatePetId()">petId 적용</button>
-</div>
+        <div class="info-box">
+            <div class="info-item">저장된 bookProjectId: <span id="savedProjectId">-</span></div>
+        </div>
 
-<div class="row">
-    <label for="templateSelect">템플릿 선택</label>
-    <select id="templateSelect"></select>
-</div>
+        <div class="guide-box">
+            <strong>안내</strong><br>
+            현재는 자동 조립 안정성을 위해, 선택한 판형에 맞는 안전한 내지 템플릿만 표시합니다.<br>
+            복잡한 템플릿은 필수 이미지 리소스를 더 요구할 수 있어 임시로 제외했습니다.
+        </div>
 
-<div class="row">
-    <label for="bookSpecSelect">판형 선택</label>
-    <select id="bookSpecSelect"></select>
-</div>
+        <div class="grid">
+            <div class="row">
+                <label for="petName">반려견 이름</label>
+                <input type="text" id="petName" placeholder="예: 하양이">
+            </div>
 
-<div class="row">
-    <button type="button" onclick="previewBook()">미리보기</button>
-    <button type="button" onclick="submitBookCreate()">책 생성</button>
-</div>
+            <div class="row">
+                <label for="memorialDate">추모일</label>
+                <input type="date" id="memorialDate">
+                <div class="hint">없으면 비워두셔도 됩니다.</div>
+            </div>
 
-<div id="result" class="result-box">여기에 결과가 표시됩니다.</div>
+            <div class="row full">
+                <label for="profileImageUrl">대표 사진 경로</label>
+                <input type="file" id="profileImageFile" accept="image/*">
+                <div class="hint">지금은 파일 업로드 대신 이미지 경로 문자열 방식으로 두는 상태입니다.</div>
+            </div>
 
-<div class="list-box">
-    <h3>외부 SweetBook 책 목록</h3>
-    <ul id="externalBookList"></ul>
+            <div class="row full">
+                <label for="title">책 제목</label>
+                <input type="text" id="title" placeholder="예: 하양이와 함께한 시간">
+            </div>
+
+            <div class="row">
+                <label for="coverTitle">표지 제목</label>
+                <input type="text" id="coverTitle" placeholder="표지에 들어갈 제목">
+            </div>
+
+            <div class="row">
+                <label for="coverSubtitle">부제</label>
+                <input type="text" id="coverSubtitle" placeholder="부제 입력">
+            </div>
+
+            <div class="row full">
+                <label for="dedicationText">헌정 문구</label>
+                <textarea id="dedicationText" placeholder="예: 우리 집에 와줘서 고마워."></textarea>
+            </div>
+
+            <div class="row">
+                <label for="bookSpecCode">판형 선택</label>
+                <select id="bookSpecCode"></select>
+                <div class="hint">판형을 먼저 선택하면 해당 판형의 안전한 내지 템플릿만 표시됩니다.</div>
+            </div>
+
+            <div class="row">
+                <label for="templateCode">템플릿 선택</label>
+                <select id="templateCode"></select>
+                <div class="hint" id="templateGuide">템플릿을 불러오는 중입니다.</div>
+            </div>
+        </div>
+
+        <div class="btn-area">
+            <button type="button" class="btn-sub" onclick="saveBookProject()">저장</button>
+            <button type="button" class="btn-sub" onclick="previewBook()">미리보기</button>
+            <button type="button" class="btn-main" onclick="submitBookCreate()">책 생성</button>
+        </div>
+
+        <div id="result" class="result-box">여기에 결과가 표시됩니다.</div>
+    </div>
+
+    <div class="card">
+        <h2 class="section-title">📚 외부 SweetBook 책 목록</h2>
+        <div class="guide-box">
+            이 영역은 현재 프로젝트 DB 목록이 아니라, SweetBook Sandbox에 생성된 외부 책 목록입니다.<br>
+            테스트로 생성된 draft 책도 여기 계속 보일 수 있습니다.
+        </div>
+        <div class="list-box">
+            <ul id="externalBookList"></ul>
+        </div>
+    </div>
 </div>
 
 </body>

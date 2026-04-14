@@ -7,11 +7,9 @@
 
     <resultMap id="petMap" type="com.sweetbook.vo.PetVO">
         <id property="petId" column="pet_id"/>
-        <result property="memberId" column="member_id"/>
+        <result property="petToken" column="pet_token"/>
         <result property="name" column="name"/>
-        <result property="color" column="color"/>
-        <result property="breed" column="breed"/>
-        <result property="relationshipLabel" column="relationship_label"/>
+        <result property="profileImageUrl" column="profile_image_url"/>
         <result property="memorialDate" column="memorial_date"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
@@ -22,17 +20,15 @@
             keyProperty="petId">
         INSERT INTO pet (
             member_id,
+            pet_token,
             name,
-            color,
-            breed,
-            relationship_label,
+            profile_image_url,
             memorial_date
         ) VALUES (
-            #{memberId},
+            1,
+            #{petToken},
             #{name},
-            #{color},
-            #{breed},
-            #{relationshipLabel},
+            #{profileImageUrl},
             #{memorialDate}
         )
     </insert>
@@ -40,11 +36,9 @@
     <select id="selectPetById" parameterType="long" resultMap="petMap">
         SELECT
             pet_id,
-            member_id,
+            pet_token,
             name,
-            color,
-            breed,
-            relationship_label,
+            profile_image_url,
             memorial_date,
             created_at
         FROM pet
@@ -54,11 +48,9 @@
     <select id="selectPetList" resultMap="petMap">
         SELECT
             pet_id,
-            member_id,
+            pet_token,
             name,
-            color,
-            breed,
-            relationship_label,
+            profile_image_url,
             memorial_date,
             created_at
         FROM pet
@@ -68,11 +60,9 @@
     <select id="selectPetListByMemberId" parameterType="long" resultMap="petMap">
         SELECT
             pet_id,
-            member_id,
+            pet_token,
             name,
-            color,
-            breed,
-            relationship_label,
+            profile_image_url,
             memorial_date,
             created_at
         FROM pet
@@ -84,9 +74,7 @@
         UPDATE pet
         SET
             name = #{name},
-            color = #{color},
-            breed = #{breed},
-            relationship_label = #{relationshipLabel},
+            profile_image_url = #{profileImageUrl},
             memorial_date = #{memorialDate}
         WHERE pet_id = #{petId}
     </update>

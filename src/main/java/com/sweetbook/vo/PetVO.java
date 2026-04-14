@@ -6,11 +6,9 @@ import java.time.LocalDateTime;
 public class PetVO {
 
     private Long petId;
-    private Long memberId;
+    private String petToken;
     private String name;
-    private String color;
-    private String breed;
-    private String relationshipLabel;
+    private String profileImageUrl;
     private LocalDate memorialDate;
     private LocalDateTime createdAt;
 
@@ -22,12 +20,12 @@ public class PetVO {
         this.petId = petId;
     }
 
-    public Long getMemberId() {
-        return memberId;
+    public String getPetToken() {
+        return petToken;
     }
 
-    public void setMemberId(Long memberId) {
-        this.memberId = memberId;
+    public void setPetToken(String petToken) {
+        this.petToken = petToken;
     }
 
     public String getName() {
@@ -38,28 +36,12 @@ public class PetVO {
         this.name = name;
     }
 
-    public String getColor() {
-        return color;
+    public String getProfileImageUrl() {
+        return profileImageUrl;
     }
 
-    public void setColor(String color) {
-        this.color = color;
-    }
-
-    public String getBreed() {
-        return breed;
-    }
-
-    public void setBreed(String breed) {
-        this.breed = breed;
-    }
-
-    public String getRelationshipLabel() {
-        return relationshipLabel;
-    }
-
-    public void setRelationshipLabel(String relationshipLabel) {
-        this.relationshipLabel = relationshipLabel;
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     public LocalDate getMemorialDate() {

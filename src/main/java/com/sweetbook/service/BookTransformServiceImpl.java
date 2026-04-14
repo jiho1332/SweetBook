@@ -6,6 +6,7 @@ import com.sweetbook.vo.MemoryVO;
 import com.sweetbook.vo.PetVO;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,12 +46,11 @@ public class BookTransformServiceImpl implements BookTransformService {
             pages.add(page);
         }
 
+        String defaultTitle = petVO.getName() + "와 함께한 시간";
+
         BookRequestPreviewVO preview = new BookRequestPreviewVO();
         preview.setPetId(petVO.getPetId());
         preview.setPetName(petVO.getName());
-        preview.setRelationshipLabel(petVO.getRelationshipLabel());
-
-        String defaultTitle = petVO.getName() + "와 함께한 시간";
         preview.setTitle(defaultTitle);
         preview.setCoverTitle(defaultTitle);
         preview.setCoverSubtitle(buildCoverSubtitle(petVO));
@@ -63,8 +63,8 @@ public class BookTransformServiceImpl implements BookTransformService {
     }
 
     private String buildCoverSubtitle(PetVO petVO) {
-        if (petVO.getRelationshipLabel() != null && !petVO.getRelationshipLabel().isBlank()) {
-            return "나의 " + petVO.getRelationshipLabel() + "을(를) 기억하며";
+        if (petVO.getMemorialDate() != null) {
+            return petVO.getMemorialDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")) + "의 기억";
         }
         return "소중한 기억을 담아";
     }

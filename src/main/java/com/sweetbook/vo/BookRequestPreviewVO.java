@@ -6,7 +6,6 @@ public class BookRequestPreviewVO {
 
     private Long petId;
     private String petName;
-    private String relationshipLabel;
     private String title;
     private String coverTitle;
     private String coverSubtitle;
@@ -29,14 +28,6 @@ public class BookRequestPreviewVO {
 
     public void setPetName(String petName) {
         this.petName = petName;
-    }
-
-    public String getRelationshipLabel() {
-        return relationshipLabel;
-    }
-
-    public void setRelationshipLabel(String relationshipLabel) {
-        this.relationshipLabel = relationshipLabel;
     }
 
     public String getTitle() {

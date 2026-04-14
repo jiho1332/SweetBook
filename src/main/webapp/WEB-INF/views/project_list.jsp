@@ -9,22 +9,41 @@
         body {
             font-family: Arial;
             margin: 30px;
+            background: #f7f1e8;
+            color: #3b2f2f;
         }
         input {
             margin: 5px;
-            padding: 5px;
+            padding: 8px 10px;
+            border: 1px solid #d8c9b8;
+            border-radius: 8px;
         }
         button {
-            padding: 5px 10px;
+            padding: 8px 12px;
             margin-left: 5px;
+            border: none;
+            border-radius: 8px;
+            background: #d98d52;
+            color: white;
+            cursor: pointer;
         }
         li {
             margin: 10px 0;
+            list-style: none;
         }
         .box {
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 10px;
+            border: 1px solid #e3d7c9;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-radius: 14px;
+            background: #fffdf9;
+        }
+        .sub-btn {
+            background: #ead7c4;
+            color: #5c4638;
+        }
+        h1, h3 {
+            margin-bottom: 14px;
         }
     </style>
 </head>
@@ -33,17 +52,7 @@
 
 <h1>📚 SweetBook 프로젝트</h1>
 
-<h3>프로젝트 생성</h3>
-
-<input type="number" id="petId" placeholder="petId 입력">
-<input type="text" id="title" placeholder="제목">
-<input type="text" id="description" placeholder="설명">
-
-<button onclick="createProject()">생성</button>
-
-<hr>
-
-<h3>로컬 프로젝트 목록</h3>
+<h3>프로젝트 목록</h3>
 <ul id="projectList"></ul>
 
 <script>
@@ -58,20 +67,25 @@
             success: function (data) {
                 let html = "";
 
+                if (!data || data.length === 0) {
+                    html = "<li class='box'>저장된 프로젝트가 없습니다.</li>";
+                    $("#projectList").html(html);
+                    return;
+                }
+
                 data.forEach(function (project) {
                     html += "<li class='box'>";
-                    html += "<b>제목:</b> " + project.title + "<br>";
-                    html += "<b>설명:</b> " + (project.description || "없음") + "<br>";
-                    html += "<b>상태:</b> " + project.status + "<br>";
-                    html += "<b>petId:</b> " + (project.petId || "없음") + "<br>";
+                    html += "<b>프로젝트 제목:</b> " + (project.title || "없음") + "<br>";
+                    html += "<b>표지 제목:</b> " + (project.coverTitle || "없음") + "<br>";
+                    html += "<b>부제:</b> " + (project.coverSubtitle || "없음") + "<br>";
+                    html += "<b>헌정 문구:</b> " + (project.dedicationText || "없음") + "<br>";
+                    html += "<b>템플릿:</b> " + (project.templateCode || "없음") + "<br>";
+                    html += "<b>판형:</b> " + (project.bookSpecCode || "없음") + "<br>";
+                    html += "<b>상태:</b> " + (project.status || "없음") + "<br>";
+                    html += "<b>SweetBook Book ID:</b> " + (project.sweetbookBookId || "없음") + "<br>";
 
-                    if (project.petId != null) {
-                        html += "<button onclick='goBookPage(" + project.petId + ")'>📘 책 만들기</button>";
-                    } else {
-                        html += "<span style='color:red'>petId 없음 → 책 생성 불가</span>";
-                    }
-
-                    html += "<button onclick='deleteProject(" + project.bookProjectId + ")'>삭제</button>";
+                    html += "<button onclick='goBookPage(" + project.bookProjectId + ")'>📘 프로젝트 열기</button>";
+                    html += "<button class='sub-btn' onclick='deleteProject(" + project.bookProjectId + ")'>삭제</button>";
                     html += "</li>";
                 });
 
@@ -83,33 +97,8 @@
         });
     }
 
-    function goBookPage(petId) {
-        localStorage.setItem("sweetbook_petId", petId);
-        location.href = "/book_test.jsp?petId=" + petId;
-    }
-
-    function createProject() {
-        const data = {
-            memberId: 1,
-            petId: $("#petId").val(),
-            title: $("#title").val(),
-            description: $("#description").val(),
-            status: "DRAFT"
-        };
-
-        $.ajax({
-            url: "/api/book-projects",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(data),
-            success: function () {
-                alert("생성 완료");
-                loadProjects();
-            },
-            error: function () {
-                alert("생성 실패");
-            }
-        });
+    function goBookPage(bookProjectId) {
+        location.href = "/book_test.jsp?bookProjectId=" + bookProjectId;
     }
 
     function deleteProject(bookProjectId) {
