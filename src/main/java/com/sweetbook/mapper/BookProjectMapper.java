@@ -26,8 +26,19 @@ public interface BookProjectMapper {
 
     int updateBookCreated(@Param("bookProjectId") Long bookProjectId,
                           @Param("sweetbookBookId") String sweetbookBookId,
+                          @Param("bookUid") String bookUid,
                           @Param("status") String status);
 
     int updateBookFinalized(@Param("bookProjectId") Long bookProjectId,
                             @Param("status") String status);
+
+    int updateBookUid(@Param("bookProjectId") Long bookProjectId,
+                      @Param("bookUid") String bookUid);
+
+    int updateTemplateAndSpecUid(@Param("bookProjectId") Long bookProjectId,
+                                 @Param("bookSpecUid") String bookSpecUid,
+                                 @Param("coverTemplateUid") String coverTemplateUid,
+                                 @Param("contentTemplateUid") String contentTemplateUid);
+
+    BookProjectVO findById(Long id);
 }

@@ -10,4 +10,12 @@ public class PageController {
     public String bookTestPage() {
         return "book_test";
     }
+    @GetMapping("/memory-add")
+    public String memoryAddPage() {
+        return "memory_add";
+    }
+    @GetMapping("/review")
+    public String reviewPage() {
+        return "review";
+    }
 }

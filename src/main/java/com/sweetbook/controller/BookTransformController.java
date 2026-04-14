@@ -8,6 +8,8 @@ import com.sweetbook.vo.BookRequestPreviewVO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/books")
 public class BookTransformController {
@@ -48,7 +50,7 @@ public class BookTransformController {
             return ResponseEntity.notFound().build();
         }
 
-        validateProject(project);
+        validatePreviewProject(project);
 
         BookRequestPreviewVO preview = bookTransformService.buildBookRequestPreview(
                 project.getPetId(),
@@ -59,45 +61,53 @@ public class BookTransformController {
         return ResponseEntity.ok(preview);
     }
 
-    @PostMapping("/book-projects/{bookProjectId}/create")
-    @ResponseBody
-    public String createBook(@PathVariable("bookProjectId") Long bookProjectId) {
+    @PostMapping("/book-projects/{bookProjectId}/apply-template")
+    public ResponseEntity<Map<String, Object>> applyTemplate(
+            @PathVariable("bookProjectId") Long bookProjectId) {
 
         BookProjectVO project = bookProjectService.getBookProjectById(bookProjectId);
         if (project == null) {
-            throw new IllegalArgumentException("존재하지 않는 책 프로젝트입니다. bookProjectId=" + bookProjectId);
+            return ResponseEntity.notFound().build();
         }
 
-        validateProject(project);
+        validateTemplateProject(project);
 
-        BookRequestPreviewVO preview = bookTransformService.buildBookRequestPreview(
-                project.getPetId(),
-                project.getTemplateCode(),
-                project.getBookSpecCode()
-        );
-
-        if (preview == null) {
-            throw new IllegalStateException("책 미리보기 데이터 생성에 실패했습니다.");
-        }
-
-        String bookUid = sweetBookApiService.createBook(preview);
-        sweetBookApiService.addContents(bookUid, preview);
-        sweetBookApiService.finalizeBook(bookUid);
-
-        project.setSweetbookBookId(bookUid);
-        project.setStatus("CREATED");
-        bookProjectService.modifyBookProject(project);
-
-        return "책 생성 완료: " + bookUid;
+        Map<String, Object> result = bookTransformService.applyTemplate(bookProjectId);
+        return ResponseEntity.ok(result);
     }
 
-    private void validateProject(BookProjectVO project) {
+    @PostMapping("/book-projects/{bookProjectId}/finalize")
+    public ResponseEntity<Map<String, Object>> finalizeBook(
+            @PathVariable("bookProjectId") Long bookProjectId) {
+
+        BookProjectVO project = bookProjectService.getBookProjectById(bookProjectId);
+        if (project == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (project.getBookUid() == null || project.getBookUid().isBlank()) {
+            throw new IllegalArgumentException("book_uid가 없습니다. 먼저 템플릿 적용을 완료해야 합니다.");
+        }
+
+        String response = sweetBookApiService.finalizeBook(project.getBookUid());
+        bookProjectService.modifyBookFinalized(bookProjectId, "FINALIZED");
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "bookProjectId", bookProjectId,
+                "bookUid", project.getBookUid(),
+                "status", "FINALIZED",
+                "response", response
+        ));
+    }
+
+    private void validatePreviewProject(BookProjectVO project) {
         if (project.getTemplateCode() == null || project.getTemplateCode().isBlank()) {
-            throw new IllegalArgumentException("템플릿이 선택되지 않았습니다.");
+            throw new IllegalArgumentException("template_code가 비어 있습니다.");
         }
 
         if (project.getBookSpecCode() == null || project.getBookSpecCode().isBlank()) {
-            throw new IllegalArgumentException("판형이 선택되지 않았습니다.");
+            throw new IllegalArgumentException("book_spec_code가 비어 있습니다.");
         }
 
         if (project.getTitle() == null || project.getTitle().isBlank()) {
@@ -105,7 +115,25 @@ public class BookTransformController {
         }
 
         if (project.getPetId() == null) {
-            throw new IllegalArgumentException("반려견 정보가 연결되지 않았습니다.");
+            throw new IllegalArgumentException("pet_id가 없습니다.");
+        }
+    }
+
+    private void validateTemplateProject(BookProjectVO project) {
+        if (project.getBookSpecUid() == null || project.getBookSpecUid().isBlank()) {
+            throw new IllegalArgumentException("book_spec_uid가 비어 있습니다.");
+        }
+
+        if (project.getContentTemplateUid() == null || project.getContentTemplateUid().isBlank()) {
+            throw new IllegalArgumentException("content_template_uid가 비어 있습니다.");
+        }
+
+        if (project.getTitle() == null || project.getTitle().isBlank()) {
+            throw new IllegalArgumentException("책 제목이 비어 있습니다.");
+        }
+
+        if (project.getPetId() == null) {
+            throw new IllegalArgumentException("pet_id가 없습니다.");
         }
     }
 }

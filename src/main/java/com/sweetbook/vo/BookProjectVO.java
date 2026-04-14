@@ -7,13 +7,24 @@ public class BookProjectVO {
     private Long bookProjectId;
     private Long petId;
     private String title;
+
     private String coverTitle;
     private String coverSubtitle;
     private String dedicationText;
+
     private String templateCode;
     private String bookSpecCode;
+
+    // 🔥 추가 (API 필수)
+    private String bookSpecUid;
+    private String coverTemplateUid;
+    private String contentTemplateUid;
+    private String bookUid;
+
+    // 기존
     private String sweetbookBookId;
     private String status;
+
     private LocalDateTime createdAt;
     private LocalDateTime finalizedAt;
 
@@ -81,6 +92,42 @@ public class BookProjectVO {
         this.bookSpecCode = bookSpecCode;
     }
 
+    // 🔥 추가 getter/setter
+
+    public String getBookSpecUid() {
+        return bookSpecUid;
+    }
+
+    public void setBookSpecUid(String bookSpecUid) {
+        this.bookSpecUid = bookSpecUid;
+    }
+
+    public String getCoverTemplateUid() {
+        return coverTemplateUid;
+    }
+
+    public void setCoverTemplateUid(String coverTemplateUid) {
+        this.coverTemplateUid = coverTemplateUid;
+    }
+
+    public String getContentTemplateUid() {
+        return contentTemplateUid;
+    }
+
+    public void setContentTemplateUid(String contentTemplateUid) {
+        this.contentTemplateUid = contentTemplateUid;
+    }
+
+    public String getBookUid() {
+        return bookUid;
+    }
+
+    public void setBookUid(String bookUid) {
+        this.bookUid = bookUid;
+    }
+
+    // 기존 유지
+
     public String getSweetbookBookId() {
         return sweetbookBookId;
     }
@@ -111,5 +158,14 @@ public class BookProjectVO {
 
     public void setFinalizedAt(LocalDateTime finalizedAt) {
         this.finalizedAt = finalizedAt;
+    }
+    private String memorialDate;
+
+    public String getMemorialDate() {
+        return memorialDate;
+    }
+
+    public void setMemorialDate(String memorialDate) {
+        this.memorialDate = memorialDate;
     }
 }

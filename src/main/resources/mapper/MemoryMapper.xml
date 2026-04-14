@@ -120,4 +120,5 @@
         WHERE memory_id = #{memoryId}
     </delete>
 
+
 </mapper>

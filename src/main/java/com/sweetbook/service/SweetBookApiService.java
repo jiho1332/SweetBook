@@ -2,8 +2,11 @@ package com.sweetbook.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sweetbook.vo.BookRequestPreviewVO;
+import com.sweetbook.vo.BookProjectVO;
+import com.sweetbook.vo.MemoryVO;
+import com.sweetbook.vo.PetVO;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -11,8 +14,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
-import java.util.HashMap;
+import java.io.InputStream;
+import java.net.URL;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Service
@@ -90,34 +95,34 @@ public class SweetBookApiService {
             ResponseEntity<String> response =
                     restTemplate.exchange(url, HttpMethod.GET, request, String.class);
 
-            System.out.println("===== Books 목록 조회 =====");
+            System.out.println("===== books =====");
             System.out.println(response.getBody());
 
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            printHttpError("Books 목록 조회 실패", e);
+            printHttpError("books 조회 실패", e);
             throw new RuntimeException(
-                    "Books 목록 조회 실패: " + e.getStatusCode() + " / " + e.getResponseBodyAsString(),
+                    "books 조회 실패: " + e.getStatusCode() + " / " + e.getResponseBodyAsString(),
                     e
             );
         } catch (Exception e) {
-            System.out.println("===== Books 목록 조회 실패 =====");
+            System.out.println("===== books 조회 실패 =====");
             e.printStackTrace();
-            throw new RuntimeException("Books 목록 조회 실패: " + e.getMessage(), e);
+            throw new RuntimeException("books 조회 실패: " + e.getMessage(), e);
         }
     }
 
-    public String createBook(BookRequestPreviewVO preview) {
-        validatePreviewForCreate(preview);
+    public String createBook(BookProjectVO project) {
+        validateProjectForCreate(project);
 
         String url = buildUrl("/books");
 
         HttpHeaders headers = createAuthHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("title", safe(preview.getTitle()));
-        requestBody.put("bookSpecUid", safe(preview.getBookSpecCode()));
+        Map<String, Object> requestBody = new LinkedHashMap<>();
+        requestBody.put("title", safe(project.getTitle()));
+        requestBody.put("bookSpecUid", safe(project.getBookSpecUid()));
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
@@ -164,11 +169,8 @@ public class SweetBookApiService {
         }
     }
 
-    public String addContents(String bookUid, BookRequestPreviewVO preview) {
-        validatePreviewForContents(bookUid, preview);
-
-        TemplateInfo templateInfo = loadTemplateInfo(preview.getTemplateCode());
-        validateTemplateAndSpec(preview, templateInfo);
+    public String addContent(String bookUid, BookProjectVO project, PetVO petVO, MemoryVO memoryVO) {
+        validateForAddContent(bookUid, project, memoryVO);
 
         String url = buildUrl("/books/" + bookUid + "/contents");
 
@@ -176,21 +178,19 @@ public class SweetBookApiService {
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("templateUid", safe(preview.getTemplateCode()));
+        body.add("templateUid", safe(project.getContentTemplateUid()));
+        body.add("parameters", buildParametersJson(project, petVO, memoryVO));
 
-        Map<String, Object> parameters = buildTemplateParameters(preview, templateInfo);
-        String parametersJson;
+        if (!safe(memoryVO.getImageUrl()).isBlank()) {
+            body.add("photo", downloadImageAsResource(memoryVO.getImageUrl()));
+        }
 
         try {
-            parametersJson = objectMapper.writeValueAsString(parameters);
-            body.add("parameters", parametersJson);
-
             System.out.println("===== Contents API 요청 =====");
             System.out.println("url = " + url);
-            System.out.println("templateUid = " + preview.getTemplateCode());
-            System.out.println("templateName = " + templateInfo.templateName());
-            System.out.println("bookSpecUid = " + templateInfo.bookSpecUid());
-            System.out.println("parameters = " + parametersJson);
+            System.out.println("templateUid = " + project.getContentTemplateUid());
+            System.out.println("memoryId = " + memoryVO.getMemoryId());
+            System.out.println("parameters = " + buildParametersJson(project, petVO, memoryVO));
 
             HttpEntity<MultiValueMap<String, Object>> request =
                     new HttpEntity<>(body, headers);
@@ -257,213 +257,73 @@ public class SweetBookApiService {
         }
     }
 
-    private Map<String, Object> buildTemplateParameters(BookRequestPreviewVO preview, TemplateInfo templateInfo) {
-        String templateName = safe(templateInfo.templateName()).toLowerCase();
-        String title = safe(preview.getTitle());
-
-        if (templateName.contains("알림장b_내지_fill".toLowerCase())) {
-            return buildNotifyFillParameters(preview, title);
-        }
-
-        if (templateName.contains("gallery")) {
-            return buildGalleryParameters(preview, title);
-        }
-
-        if (templateName.contains("photo")) {
-            return buildPhotoParameters(preview, title);
-        }
-
-        return buildGenericTextImageParameters(preview, title);
-    }
-
-    private Map<String, Object> buildNotifyFillParameters(BookRequestPreviewVO preview, String title) {
-        Map<String, Object> parameters = new HashMap<>();
-
-        LocalDate today = LocalDate.now();
-
-        parameters.put("year", String.valueOf(today.getYear()));
-        parameters.put("month", String.format("%02d", today.getMonthValue()));
-        parameters.put("date", String.format("%02d", today.getDayOfMonth()));
-        parameters.put("bookTitle", title);
-
-        parameters.put("weatherLabel1", "기억");
-        parameters.put("weatherValue1", truncate(title, 20));
-
-        parameters.put("mealLabel1", "추억");
-        parameters.put("mealValue1", extractPageText(preview, 0, "소중한 하루"));
-
-        parameters.put("napLabel1", "마음");
-        parameters.put("napValue1", extractPageText(preview, 1, "늘 그리워"));
-
-        parameters.put("pointColor", "#D98D52");
-
-        addImageParameterIfExists(parameters, "image1", preview, 0);
-        addImageParameterIfExists(parameters, "image2", preview, 1);
-        addImageParameterIfExists(parameters, "image3", preview, 2);
-
-        return parameters;
-    }
-
-    private Map<String, Object> buildGalleryParameters(BookRequestPreviewVO preview, String title) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("title", title);
-
-        for (int i = 0; i < getPageCount(preview); i++) {
-            addImageParameterIfExists(parameters, "image" + (i + 1), preview, i);
-            addTextParameterIfExists(parameters, "text" + (i + 1), preview, i);
-        }
-
-        return parameters;
-    }
-
-    private Map<String, Object> buildPhotoParameters(BookRequestPreviewVO preview, String title) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("title", title);
-
-        if (getPageCount(preview) > 0) {
-            addImageParameterIfExists(parameters, "image1", preview, 0);
-            addTextParameterIfExists(parameters, "text1", preview, 0);
-        }
-
-        if (getPageCount(preview) > 1) {
-            addImageParameterIfExists(parameters, "image2", preview, 1);
-            addTextParameterIfExists(parameters, "text2", preview, 1);
-        }
-
-        return parameters;
-    }
-
-    private Map<String, Object> buildGenericTextImageParameters(BookRequestPreviewVO preview, String title) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("title", title);
-
-        for (int i = 0; i < getPageCount(preview); i++) {
-            addTextParameterIfExists(parameters, "text" + (i + 1), preview, i);
-            addImageParameterIfExists(parameters, "image" + (i + 1), preview, i);
-        }
-
-        if (parameters.size() == 1) {
-            parameters.put("text1", "소중한 추억을 담았습니다.");
-        }
-
-        return parameters;
-    }
-
-    private void addTextParameterIfExists(Map<String, Object> parameters, String key,
-                                          BookRequestPreviewVO preview, int pageIndex) {
-        String text = extractPageText(preview, pageIndex, "");
-        if (!text.isBlank()) {
-            parameters.put(key, text);
-        }
-    }
-
-    private void addImageParameterIfExists(Map<String, Object> parameters, String key,
-                                           BookRequestPreviewVO preview, int pageIndex) {
-        String imageUrl = extractPageImageUrl(preview, pageIndex);
-        if (!imageUrl.isBlank()) {
-            parameters.put(key, imageUrl);
-        }
-    }
-
-    private String extractPageText(BookRequestPreviewVO preview, int pageIndex, String defaultValue) {
+    private String buildParametersJson(BookProjectVO project, PetVO petVO, MemoryVO memoryVO) {
         try {
-            if (preview.getPages() == null || preview.getPages().size() <= pageIndex || preview.getPages().get(pageIndex) == null) {
-                return defaultValue;
+            Map<String, Object> parameters = new LinkedHashMap<>();
+            parameters.put("bookTitle", safe(project.getTitle()));
+            parameters.put("coverTitle", safe(project.getCoverTitle()));
+            parameters.put("coverSubtitle", safe(project.getCoverSubtitle()));
+            parameters.put("dedicationText", safe(project.getDedicationText()));
+            parameters.put("petName", petVO != null ? safe(petVO.getName()) : "");
+            parameters.put("memoryTitle", safe(memoryVO.getTitle()));
+            parameters.put("memoryText", safe(memoryVO.getContent()));
+            parameters.put("chapterType", safe(memoryVO.getChapterType()));
+            parameters.put("displayOrder", memoryVO.getDisplayOrder());
+
+            if (memoryVO.getRecordedAt() != null) {
+                parameters.put(
+                        "recordedAt",
+                        memoryVO.getRecordedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                );
+            } else {
+                parameters.put("recordedAt", "");
             }
 
-            String text = safe(preview.getPages().get(pageIndex).getText());
-            return text.isBlank() ? defaultValue : truncate(text, 60);
+            return objectMapper.writeValueAsString(parameters);
         } catch (Exception e) {
-            return defaultValue;
+            throw new RuntimeException("parameters JSON 생성 실패", e);
         }
     }
 
-    private String extractPageImageUrl(BookRequestPreviewVO preview, int pageIndex) {
-        try {
-            if (preview.getPages() == null || preview.getPages().size() <= pageIndex || preview.getPages().get(pageIndex) == null) {
-                return "";
-            }
-            return safe(preview.getPages().get(pageIndex).getImageUrl());
-        } catch (Exception e) {
-            return "";
-        }
-    }
+    private ByteArrayResource downloadImageAsResource(String imageUrl) {
+        try (InputStream inputStream = new URL(imageUrl).openStream()) {
+            byte[] bytes = inputStream.readAllBytes();
 
-    private int getPageCount(BookRequestPreviewVO preview) {
-        return preview.getPages() == null ? 0 : preview.getPages().size();
-    }
-
-    private TemplateInfo loadTemplateInfo(String templateUid) {
-        try {
-            String templateResponse = getTemplates();
-            JsonNode root = objectMapper.readTree(templateResponse);
-
-            JsonNode templatesNode = root.path("data").path("templates");
-            if (!templatesNode.isArray()) {
-                throw new RuntimeException("templates 응답 구조가 올바르지 않습니다.");
-            }
-
-            for (JsonNode templateNode : templatesNode) {
-                String currentUid = templateNode.path("templateUid").asText("");
-                if (templateUid.equals(currentUid)) {
-                    String templateName = templateNode.path("templateName").asText("");
-                    String bookSpecUid = templateNode.path("bookSpecUid").asText("");
-                    String templateKind = templateNode.path("templateKind").asText("");
-                    return new TemplateInfo(currentUid, templateName, bookSpecUid, templateKind);
+            return new ByteArrayResource(bytes) {
+                @Override
+                public String getFilename() {
+                    return "memory-image.jpg";
                 }
-            }
-
-            throw new RuntimeException("선택한 templateUid에 해당하는 템플릿을 찾지 못했습니다. templateUid=" + templateUid);
-
+            };
         } catch (Exception e) {
-            throw new RuntimeException("템플릿 정보 조회 실패: " + e.getMessage(), e);
+            throw new RuntimeException("이미지 다운로드 실패: " + imageUrl, e);
         }
     }
 
-    private void validateTemplateAndSpec(BookRequestPreviewVO preview, TemplateInfo templateInfo) {
-        if (!"content".equalsIgnoreCase(safe(templateInfo.templateKind()))) {
-            throw new IllegalArgumentException(
-                    "선택한 템플릿은 내지(content) 템플릿이 아닙니다. templateUid=" + templateInfo.templateUid()
-            );
+    private void validateProjectForCreate(BookProjectVO project) {
+        if (project == null) {
+            throw new IllegalArgumentException("project가 null입니다.");
         }
-
-        if (!safe(templateInfo.bookSpecUid()).equals(safe(preview.getBookSpecCode()))) {
-            throw new IllegalArgumentException(
-                    "선택한 템플릿과 판형이 맞지 않습니다. templateBookSpecUid="
-                            + templateInfo.bookSpecUid()
-                            + ", projectBookSpecCode="
-                            + preview.getBookSpecCode()
-            );
-        }
-    }
-
-    private void validatePreviewForCreate(BookRequestPreviewVO preview) {
-        if (preview == null) {
-            throw new IllegalArgumentException("preview가 null입니다.");
-        }
-        if (safe(preview.getTitle()).isBlank()) {
+        if (safe(project.getTitle()).isBlank()) {
             throw new IllegalArgumentException("책 제목이 비어 있습니다.");
         }
-        if (safe(preview.getBookSpecCode()).isBlank()) {
-            throw new IllegalArgumentException("판형 코드(bookSpecCode)가 비어 있습니다.");
+        if (safe(project.getBookSpecUid()).isBlank()) {
+            throw new IllegalArgumentException("bookSpecUid가 비어 있습니다.");
         }
     }
 
-    private void validatePreviewForContents(String bookUid, BookRequestPreviewVO preview) {
+    private void validateForAddContent(String bookUid, BookProjectVO project, MemoryVO memoryVO) {
         if (safe(bookUid).isBlank()) {
             throw new IllegalArgumentException("bookUid가 비어 있습니다.");
         }
-        if (preview == null) {
-            throw new IllegalArgumentException("preview가 null입니다.");
+        if (project == null) {
+            throw new IllegalArgumentException("project가 null입니다.");
         }
-        if (safe(preview.getTemplateCode()).isBlank()) {
-            throw new IllegalArgumentException("템플릿 코드(templateCode)가 비어 있습니다.");
+        if (safe(project.getContentTemplateUid()).isBlank()) {
+            throw new IllegalArgumentException("contentTemplateUid가 비어 있습니다.");
         }
-        if (safe(preview.getBookSpecCode()).isBlank()) {
-            throw new IllegalArgumentException("판형 코드(bookSpecCode)가 비어 있습니다.");
-        }
-        if (safe(preview.getTitle()).isBlank()) {
-            throw new IllegalArgumentException("책 제목(title)이 비어 있습니다.");
+        if (memoryVO == null) {
+            throw new IllegalArgumentException("memory가 null입니다.");
         }
     }
 
@@ -492,21 +352,5 @@ public class SweetBookApiService {
 
     private String safe(String value) {
         return value == null ? "" : value.trim();
-    }
-
-    private String truncate(String value, int maxLength) {
-        String text = safe(value);
-        if (text.length() <= maxLength) {
-            return text;
-        }
-        return text.substring(0, maxLength);
-    }
-
-    private record TemplateInfo(
-            String templateUid,
-            String templateName,
-            String bookSpecUid,
-            String templateKind
-    ) {
     }
 }

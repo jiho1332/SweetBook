@@ -56,8 +56,26 @@ public class BookProjectServiceImpl implements BookProjectService {
     }
 
     @Override
-    public boolean modifyBookCreated(Long bookProjectId, String sweetbookBookId, String status) {
-        return bookProjectMapper.updateBookCreated(bookProjectId, sweetbookBookId, status) > 0;
+    public boolean modifyBookCreated(Long bookProjectId, String sweetbookBookId, String bookUid, String status) {
+        return bookProjectMapper.updateBookCreated(bookProjectId, sweetbookBookId, bookUid, status) > 0;
+    }
+
+    @Override
+    public boolean modifyBookUid(Long bookProjectId, String bookUid) {
+        return bookProjectMapper.updateBookUid(bookProjectId, bookUid) > 0;
+    }
+
+    @Override
+    public boolean modifyTemplateAndSpecUid(Long bookProjectId,
+                                            String bookSpecUid,
+                                            String coverTemplateUid,
+                                            String contentTemplateUid) {
+        return bookProjectMapper.updateTemplateAndSpecUid(
+                bookProjectId,
+                bookSpecUid,
+                coverTemplateUid,
+                contentTemplateUid
+        ) > 0;
     }
 
     @Override

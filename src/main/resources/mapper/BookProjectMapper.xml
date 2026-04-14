@@ -14,11 +14,36 @@
         <result property="dedicationText" column="dedication_text"/>
         <result property="templateCode" column="template_code"/>
         <result property="bookSpecCode" column="book_spec_code"/>
+
+        <result property="bookSpecUid" column="book_spec_uid"/>
+        <result property="coverTemplateUid" column="cover_template_uid"/>
+        <result property="contentTemplateUid" column="content_template_uid"/>
+        <result property="bookUid" column="book_uid"/>
+
         <result property="sweetbookBookId" column="sweetbook_book_id"/>
         <result property="status" column="status"/>
         <result property="createdAt" column="created_at"/>
         <result property="finalizedAt" column="finalized_at"/>
     </resultMap>
+
+    <sql id="bookProjectColumns">
+        book_project_id,
+        pet_id,
+        title,
+        cover_title,
+        cover_subtitle,
+        dedication_text,
+        template_code,
+        cover_template_uid,
+        content_template_uid,
+        book_spec_code,
+        book_spec_uid,
+        sweetbook_book_id,
+        book_uid,
+        status,
+        created_at,
+        finalized_at
+    </sql>
 
     <insert id="insertBookProject"
             parameterType="com.sweetbook.vo.BookProjectVO"
@@ -31,8 +56,12 @@
             cover_subtitle,
             dedication_text,
             template_code,
+            cover_template_uid,
+            content_template_uid,
             book_spec_code,
+            book_spec_uid,
             sweetbook_book_id,
+            book_uid,
             status
         ) VALUES (
             #{petId},
@@ -41,62 +70,33 @@
             #{coverSubtitle},
             #{dedicationText},
             #{templateCode},
+            #{coverTemplateUid},
+            #{contentTemplateUid},
             #{bookSpecCode},
+            #{bookSpecUid},
             #{sweetbookBookId},
+            #{bookUid},
             #{status}
         )
     </insert>
 
     <select id="selectBookProjectById" parameterType="long" resultMap="bookProjectMap">
         SELECT
-            book_project_id,
-            pet_id,
-            title,
-            cover_title,
-            cover_subtitle,
-            dedication_text,
-            template_code,
-            book_spec_code,
-            sweetbook_book_id,
-            status,
-            created_at,
-            finalized_at
+            <include refid="bookProjectColumns"/>
         FROM book_project
         WHERE book_project_id = #{bookProjectId}
     </select>
 
     <select id="selectBookProjectList" resultMap="bookProjectMap">
         SELECT
-            book_project_id,
-            pet_id,
-            title,
-            cover_title,
-            cover_subtitle,
-            dedication_text,
-            template_code,
-            book_spec_code,
-            sweetbook_book_id,
-            status,
-            created_at,
-            finalized_at
+            <include refid="bookProjectColumns"/>
         FROM book_project
         ORDER BY book_project_id DESC
     </select>
 
     <select id="selectBookProjectListByPetId" parameterType="long" resultMap="bookProjectMap">
         SELECT
-            book_project_id,
-            pet_id,
-            title,
-            cover_title,
-            cover_subtitle,
-            dedication_text,
-            template_code,
-            book_spec_code,
-            sweetbook_book_id,
-            status,
-            created_at,
-            finalized_at
+            <include refid="bookProjectColumns"/>
         FROM book_project
         WHERE pet_id = #{petId}
         ORDER BY book_project_id DESC
@@ -110,7 +110,10 @@
             cover_subtitle = #{coverSubtitle},
             dedication_text = #{dedicationText},
             template_code = #{templateCode},
+            cover_template_uid = #{coverTemplateUid},
+            content_template_uid = #{contentTemplateUid},
             book_spec_code = #{bookSpecCode},
+            book_spec_uid = #{bookSpecUid},
             status = #{status}
         WHERE book_project_id = #{bookProjectId}
     </update>
@@ -129,6 +132,7 @@
     <update id="updateBookCreated">
         UPDATE book_project
         SET sweetbook_book_id = #{sweetbookBookId},
+            book_uid = #{bookUid},
             status = #{status}
         WHERE book_project_id = #{bookProjectId}
     </update>
@@ -139,5 +143,26 @@
             finalized_at = NOW()
         WHERE book_project_id = #{bookProjectId}
     </update>
+
+    <update id="updateBookUid">
+        UPDATE book_project
+        SET book_uid = #{bookUid}
+        WHERE book_project_id = #{bookProjectId}
+    </update>
+
+    <update id="updateTemplateAndSpecUid">
+        UPDATE book_project
+        SET book_spec_uid = #{bookSpecUid},
+            cover_template_uid = #{coverTemplateUid},
+            content_template_uid = #{contentTemplateUid}
+        WHERE book_project_id = #{bookProjectId}
+    </update>
+
+    <select id="findById" resultMap="bookProjectMap">
+        SELECT
+            <include refid="bookProjectColumns"/>
+        FROM book_project
+        WHERE book_project_id = #{id}
+    </select>
 
 </mapper>

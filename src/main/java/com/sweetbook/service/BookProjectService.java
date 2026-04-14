@@ -20,7 +20,17 @@ public interface BookProjectService {
 
     boolean modifyBookProjectStatus(Long bookProjectId, String status);
 
-    boolean modifyBookCreated(Long bookProjectId, String sweetbookBookId, String status);
+    boolean modifyBookCreated(Long bookProjectId,
+                              String sweetbookBookId,
+                              String bookUid,
+                              String status);
+
+    boolean modifyBookUid(Long bookProjectId, String bookUid);
+
+    boolean modifyTemplateAndSpecUid(Long bookProjectId,
+                                     String bookSpecUid,
+                                     String coverTemplateUid,
+                                     String contentTemplateUid);
 
     boolean modifyBookFinalized(Long bookProjectId, String status);
 }
