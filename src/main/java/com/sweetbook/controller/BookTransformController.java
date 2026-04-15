@@ -1,13 +1,18 @@
 package com.sweetbook.controller;
 
 import com.sweetbook.service.BookProjectService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sweetbook.service.BookTransformService;
 import com.sweetbook.service.SweetBookApiService;
 import com.sweetbook.vo.BookProjectVO;
 import com.sweetbook.vo.BookRequestPreviewVO;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,36 +31,46 @@ public class BookTransformController {
         this.sweetBookApiService = sweetBookApiService;
     }
 
-    @GetMapping("/templates")
-    public String getTemplates() {
-        return sweetBookApiService.getTemplates();
+    @GetMapping(value = "/templates", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getTemplates() {
+        return ResponseEntity.ok(sweetBookApiService.getTemplates());
     }
 
-    @GetMapping("/book-specs")
-    public String getBookSpecs() {
-        return sweetBookApiService.getBookSpecs();
+    @GetMapping(value = "/templates/by-spec", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Map<String, String>>> getTemplatesByBookSpecUid(
+            @RequestParam("bookSpecUid") String bookSpecUid
+    ) {
+        return ResponseEntity.ok(sweetBookApiService.getTemplatesByBookSpecUid(bookSpecUid));
     }
 
-    @GetMapping("/list")
-    public String getBooks() {
-        return sweetBookApiService.getBooks();
+    @GetMapping(value = "/book-specs", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getBookSpecs() {
+        return ResponseEntity.ok(sweetBookApiService.getBookSpecs());
+    }
+
+    @GetMapping(value = "/book-specs/normalized", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Map<String, String>>> getNormalizedBookSpecs() {
+        return ResponseEntity.ok(sweetBookApiService.getNormalizedBookSpecs());
+    }
+
+    @GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getBooks() {
+        return ResponseEntity.ok(sweetBookApiService.getBooks());
     }
 
     @GetMapping("/book-projects/{bookProjectId}/preview")
     public ResponseEntity<BookRequestPreviewVO> previewBookRequest(
-            @PathVariable("bookProjectId") Long bookProjectId) {
-
+            @PathVariable("bookProjectId") Long bookProjectId
+    ) {
         BookProjectVO project = bookProjectService.getBookProjectById(bookProjectId);
         if (project == null) {
             return ResponseEntity.notFound().build();
         }
 
-        validatePreviewProject(project);
-
         BookRequestPreviewVO preview = bookTransformService.buildBookRequestPreview(
                 project.getPetId(),
-                project.getTemplateCode(),
-                project.getBookSpecCode()
+                project.getContentTemplateUid() != null ? project.getContentTemplateUid() : project.getTemplateCode(),
+                project.getBookSpecUid() != null ? project.getBookSpecUid() : project.getBookSpecCode()
         );
 
         return ResponseEntity.ok(preview);
@@ -63,77 +78,51 @@ public class BookTransformController {
 
     @PostMapping("/book-projects/{bookProjectId}/apply-template")
     public ResponseEntity<Map<String, Object>> applyTemplate(
-            @PathVariable("bookProjectId") Long bookProjectId) {
-
-        BookProjectVO project = bookProjectService.getBookProjectById(bookProjectId);
-        if (project == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        validateTemplateProject(project);
-
-        Map<String, Object> result = bookTransformService.applyTemplate(bookProjectId);
-        return ResponseEntity.ok(result);
+            @PathVariable("bookProjectId") Long bookProjectId
+    ) {
+        return ResponseEntity.ok(bookTransformService.applyTemplate(bookProjectId));
     }
-
-    @PostMapping("/book-projects/{bookProjectId}/finalize")
-    public ResponseEntity<Map<String, Object>> finalizeBook(
-            @PathVariable("bookProjectId") Long bookProjectId) {
-
+    @PostMapping("/book-projects/{bookProjectId}/create-order")
+    public ResponseEntity<Map<String, Object>> createOrder(
+            @PathVariable("bookProjectId") Long bookProjectId
+    ) {
         BookProjectVO project = bookProjectService.getBookProjectById(bookProjectId);
         if (project == null) {
             return ResponseEntity.notFound().build();
         }
 
         if (project.getBookUid() == null || project.getBookUid().isBlank()) {
-            throw new IllegalArgumentException("book_uid가 없습니다. 먼저 템플릿 적용을 완료해야 합니다.");
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "bookUid가 없습니다. 먼저 책 완성을 진행해주세요."
+            ));
         }
 
-        String response = sweetBookApiService.finalizeBook(project.getBookUid());
-        bookProjectService.modifyBookFinalized(bookProjectId, "FINALIZED");
+        try {
+            sweetBookApiService.chargeSandboxCredit(100000);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "bookProjectId", bookProjectId,
-                "bookUid", project.getBookUid(),
-                "status", "FINALIZED",
-                "response", response
-        ));
-    }
+            String orderResponse = sweetBookApiService.createOrder(project.getBookUid());
 
-    private void validatePreviewProject(BookProjectVO project) {
-        if (project.getTemplateCode() == null || project.getTemplateCode().isBlank()) {
-            throw new IllegalArgumentException("template_code가 비어 있습니다.");
-        }
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode root = mapper.readTree(orderResponse);
+            JsonNode data = root.path("data");
 
-        if (project.getBookSpecCode() == null || project.getBookSpecCode().isBlank()) {
-            throw new IllegalArgumentException("book_spec_code가 비어 있습니다.");
-        }
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("success", root.path("success").asBoolean());
+            result.put("message", root.path("message").asText());
+            result.put("orderUid", data.path("orderUid").asText());
+            result.put("orderStatus", data.path("orderStatus").asInt());
+            result.put("orderStatusDisplay", data.path("orderStatusDisplay").asText());
+            result.put("totalAmount", data.path("totalAmount").asDouble());
+            result.put("bookUid", project.getBookUid());
 
-        if (project.getTitle() == null || project.getTitle().isBlank()) {
-            throw new IllegalArgumentException("책 제목이 비어 있습니다.");
-        }
+            return ResponseEntity.ok(result);
 
-        if (project.getPetId() == null) {
-            throw new IllegalArgumentException("pet_id가 없습니다.");
-        }
-    }
-
-    private void validateTemplateProject(BookProjectVO project) {
-        if (project.getBookSpecUid() == null || project.getBookSpecUid().isBlank()) {
-            throw new IllegalArgumentException("book_spec_uid가 비어 있습니다.");
-        }
-
-        if (project.getContentTemplateUid() == null || project.getContentTemplateUid().isBlank()) {
-            throw new IllegalArgumentException("content_template_uid가 비어 있습니다.");
-        }
-
-        if (project.getTitle() == null || project.getTitle().isBlank()) {
-            throw new IllegalArgumentException("책 제목이 비어 있습니다.");
-        }
-
-        if (project.getPetId() == null) {
-            throw new IllegalArgumentException("pet_id가 없습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
         }
     }
 }
