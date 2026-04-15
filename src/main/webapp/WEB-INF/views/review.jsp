@@ -3,36 +3,208 @@
 <head>
     <title>책 미리보기</title>
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; background: #f3efe9; color: #3b2f2f; }
-        .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 20px 80px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { margin: 0; font-size: 34px; }
-        .book-meta { text-align: center; color: #7a675c; margin-bottom: 26px; font-size: 14px; line-height: 1.8; }
-        .preview-stack { display: flex; flex-direction: column; gap: 28px; }
-        .page-card { background: #fff; border-radius: 26px; padding: 22px; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06); border: 1px solid #eee4d8; }
-        .page-inner { min-height: 560px; border-radius: 22px; overflow: hidden; display: grid; }
-        .template-soft .page-inner { background: linear-gradient(135deg, #fcf7f1, #f7efe5); }
-        .cover-layout { grid-template-columns: 1.1fr 0.9fr; }
-        .memory-layout.image-left { grid-template-columns: 1fr 1fr; }
-        .page-image-box { position: relative; background: #e9ded1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .page-image-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .page-text-box { padding: 48px 42px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
-        .page-kicker { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; margin-bottom: 16px; }
-        .page-title { font-size: 34px; font-weight: bold; line-height: 1.3; margin-bottom: 16px; word-break: keep-all; }
-        .page-body { font-size: 17px; line-height: 1.9; white-space: pre-wrap; word-break: keep-all; }
-        .empty-image { font-size: 14px; color: #8c786a; }
-        .btn-area { margin-top: 36px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .btn-sub, .btn-main { border: none; border-radius: 12px; padding: 12px 18px; cursor: pointer; font-size: 14px; font-weight: bold; }
-        .btn-sub { background: #ead7c4; color: #5c4638; }
-        .btn-main { background: #d98d52; color: white; }
-        .loading { text-align: center; padding: 60px 0; font-size: 16px; color: #7a675c; }
-        .result-box { display: none; margin-top: 26px; padding: 22px; border-radius: 16px; background: #fff; border: 1px solid #eadfce; white-space: pre-wrap; line-height: 1.7; font-size: 16px; }
-        .success { color: #2d6a4f; font-weight: bold; font-size: 20px; display: block; margin-bottom: 10px; }
-        .error { color: #d9534f; font-weight: bold; font-size: 18px; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3efe9;
+            color: #3b2f2f;
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px 80px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 34px;
+        }
+
+        .book-meta {
+            text-align: center;
+            color: #7a675c;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .page-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .page-indicator {
+            min-width: 90px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: bold;
+            color: #6a574d;
+        }
+
+        .preview-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .page-card {
+            background: #fff;
+            border-radius: 26px;
+            padding: 22px;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+            border: 1px solid #eee4d8;
+        }
+
+        .page-inner {
+            min-height: 560px;
+            border-radius: 22px;
+            overflow: hidden;
+            display: grid;
+        }
+
+        .template-soft .page-inner {
+            background: linear-gradient(135deg, #fcf7f1, #f7efe5);
+        }
+
+        .cover-layout {
+            grid-template-columns: 1.1fr 0.9fr;
+        }
+
+        .memory-layout.image-left {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .page-image-box {
+            position: relative;
+            background: #e9ded1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .page-image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .page-text-box {
+            padding: 48px 42px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .page-kicker {
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 16px;
+        }
+
+        .page-title {
+            font-size: 34px;
+            font-weight: bold;
+            line-height: 1.3;
+            margin-bottom: 16px;
+            word-break: keep-all;
+        }
+
+        .page-body {
+            font-size: 17px;
+            line-height: 1.9;
+            white-space: pre-wrap;
+            word-break: keep-all;
+        }
+
+        .empty-image {
+            font-size: 14px;
+            color: #8c786a;
+        }
+
+        .btn-area {
+            margin-top: 36px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sub, .btn-main {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .btn-sub {
+            background: #ead7c4;
+            color: #5c4638;
+        }
+
+        .btn-main {
+            background: #d98d52;
+            color: white;
+        }
+
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 0;
+            font-size: 16px;
+            color: #7a675c;
+        }
+
+        .result-box {
+            display: none;
+            margin-top: 26px;
+            padding: 22px;
+            border-radius: 16px;
+            background: #fff;
+            border: 1px solid #eadfce;
+            white-space: pre-wrap;
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .success {
+            color: #2d6a4f;
+            font-weight: bold;
+            font-size: 20px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .error {
+            color: #d9534f;
+            font-weight: bold;
+            font-size: 18px;
+        }
     </style>
 
     <script>
         let bookProjectId = null;
+        let previewData = null;
+        let currentPageIndex = 0;
 
         window.onload = function () {
             const params = new URLSearchParams(window.location.search);
@@ -56,42 +228,105 @@
                     return res.ok ? res.json() : res.text().then(function(t) { throw new Error(t); });
                 })
                 .then(function(data) {
-                    renderPreview(data);
+                    previewData = data;
+                    currentPageIndex = 0;
+                    renderPreview();
                 })
                 .catch(function(err) {
                     previewStack.innerHTML = "<div class='loading error'>에러: " + escapeHtml(err.message) + "</div>";
                 });
         }
 
-        function renderPreview(data) {
+        function renderPreview() {
             const previewStack = document.getElementById("previewStack");
+
             document.getElementById("metaText").innerText =
-                "판형: PHOTOBOOK_A4_SC / 템플릿: 58edh76I0rYa";
+                "판형: " + escapeHtml(previewData.bookSpecCode || "없음") +
+                " / 템플릿: " + escapeHtml(previewData.templateCode || "없음");
 
             previewStack.innerHTML = "";
 
-            if (!data.pages || data.pages.length === 0) {
+            if (!previewData.pages || previewData.pages.length === 0) {
                 previewStack.innerHTML = "<div class='loading'>생성된 페이지가 없습니다.</div>";
+                updatePageIndicator();
+                updatePageButtons();
                 return;
             }
 
-            data.pages.forEach(function(page) {
-                const card = document.createElement("div");
-                card.className = "page-card template-soft";
+            const page = previewData.pages[currentPageIndex];
 
-                const inner = document.createElement("div");
-                let layoutClass = "memory-layout image-left";
+            const card = document.createElement("div");
+            card.className = "page-card template-soft";
 
-                if (page.chapterType === "COVER") {
-                    layoutClass = "cover-layout";
-                }
+            const inner = document.createElement("div");
+            let layoutClass = "memory-layout image-left";
 
-                inner.className = "page-inner " + layoutClass;
-                inner.innerHTML = buildPageHtml(page, data);
+            if (page.chapterType === "COVER") {
+                layoutClass = "cover-layout";
+            }
 
-                card.appendChild(inner);
-                previewStack.appendChild(card);
-            });
+            inner.className = "page-inner " + layoutClass;
+            inner.innerHTML = buildPageHtml(page, previewData);
+
+            card.appendChild(inner);
+            previewStack.appendChild(card);
+
+            updatePageIndicator();
+            updatePageButtons();
+        }
+
+        function updatePageIndicator() {
+            const indicator = document.getElementById("pageIndicator");
+
+            if (!previewData || !previewData.pages || previewData.pages.length === 0) {
+                indicator.innerText = "0 / 0";
+                return;
+            }
+
+            indicator.innerText = (currentPageIndex + 1) + " / " + previewData.pages.length;
+        }
+
+        function updatePageButtons() {
+            const btnPrev = document.getElementById("btnPrevPage");
+            const btnNext = document.getElementById("btnNextPage");
+
+            if (!previewData || !previewData.pages || previewData.pages.length === 0) {
+                btnPrev.disabled = true;
+                btnNext.disabled = true;
+                btnPrev.classList.add("btn-disabled");
+                btnNext.classList.add("btn-disabled");
+                return;
+            }
+
+            btnPrev.disabled = currentPageIndex === 0;
+            btnNext.disabled = currentPageIndex === previewData.pages.length - 1;
+
+            toggleDisabledStyle(btnPrev, btnPrev.disabled);
+            toggleDisabledStyle(btnNext, btnNext.disabled);
+        }
+
+        function toggleDisabledStyle(button, disabled) {
+            if (disabled) {
+                button.classList.add("btn-disabled");
+            } else {
+                button.classList.remove("btn-disabled");
+            }
+        }
+
+        function prevPage() {
+            if (!previewData || !previewData.pages) return;
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                renderPreview();
+            }
+        }
+
+        function nextPage() {
+            if (!previewData || !previewData.pages) return;
+            if (currentPageIndex < previewData.pages.length - 1) {
+                currentPageIndex++;
+                renderPreview();
+            }
         }
 
         function buildPageHtml(page, data) {
@@ -182,6 +417,12 @@
     </div>
 
     <div id="metaText" class="book-meta"></div>
+
+    <div class="page-nav">
+        <button type="button" id="btnPrevPage" class="btn-sub" onclick="prevPage()">◀ 이전 페이지</button>
+        <div id="pageIndicator" class="page-indicator">0 / 0</div>
+        <button type="button" id="btnNextPage" class="btn-sub" onclick="nextPage()">다음 페이지 ▶</button>
+    </div>
 
     <div id="previewStack" class="preview-stack"></div>
 
