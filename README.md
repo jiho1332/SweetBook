@@ -17,6 +17,7 @@
 책 미리보기 기능
 SweetBook API를 통한 실제 책 생성
 책 주문 기능 (Orders API 연동)
+
 2. 실행 방법
 📦 프로젝트 빌드
 ./gradlew build
@@ -27,6 +28,7 @@ SweetBook API를 통한 실제 책 생성
 
 🌐 접속 주소
 http://localhost:8081/test/book
+
 3. 환경 설정
 📌 application.properties 설정
 sweetbook.api.base-url=https://api.sweetbook.com/v1
@@ -43,6 +45,7 @@ POST /books/{bookUid}/finalization	책 완성
 POST /orders	책 주문
 GET /templates	템플릿 목록 조회
 GET /book-specs	판형 조회
+
 5. 서비스 흐름
 반려견 정보 입력
    ↓
@@ -63,6 +66,7 @@ GET /book-specs	판형 조회
 책 완성 (Finalization API)
    ↓
 주문 (Orders API)
+
 6. 프로젝트 구조
 com.sweetbook
  ├── controller        # API 및 페이지 컨트롤러
@@ -71,6 +75,7 @@ com.sweetbook
  ├── vo                # 데이터 모델
  ├── config            # 설정 클래스
  └── jsp               # 화면 (JSP)
+
 7. 설계 의도
 📌 서비스 기획
 
@@ -94,6 +99,7 @@ REST API 구조로 확장 가능
 커버 템플릿 선택 기능 추가
 페이지 커스터마이징 기능
 결제 및 주문 UI 개선
+
 8. AI 도구 사용 내역
 AI 도구	활용 내용
 ChatGPT	API 연동 구조 설계
