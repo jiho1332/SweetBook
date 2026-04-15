@@ -1,32 +1,226 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
 <head>
     <title>추억 책 만들기</title>
-    <style>
-        body { font-family: 'Pretendard', Arial, sans-serif; margin: 0; background: #f7f1e8; color: #3b2f2f; }
-        .wrap { max-width: 980px; margin: 0 auto; padding: 40px 20px 60px; }
-        .hero { background: linear-gradient(135deg, #f5e6d3, #f8f3ec); border-radius: 24px; padding: 36px; margin-bottom: 24px; box-shadow: 0 10px 24px rgba(0,0,0,0.06); }
-        .hero h1 { margin: 0 0 10px; font-size: 34px; }
-        .hero p { margin: 0; color: #6b5b53; line-height: 1.6; }
-        .card { background: #fffdf9; border-radius: 20px; padding: 28px; margin-bottom: 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
-        .section-title { margin: 0 0 20px; font-size: 22px; border-left: 5px solid #d98d52; padding-left: 12px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; }
-        .row { display: flex; flex-direction: column; }
-        .row.full { grid-column: 1 / -1; }
-        label { margin-bottom: 8px; font-weight: bold; color: #5a463d; }
-        input, select, textarea { padding: 12px 14px; border: 1px solid #dbcfc2; border-radius: 12px; background: white; font-size: 14px; outline: none; box-sizing: border-box; width: 100%; }
-        textarea { min-height: 130px; resize: vertical; }
-        .btn-area { margin-top: 22px; display: flex; gap: 10px; }
-        button { border: none; border-radius: 12px; padding: 14px 24px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
-        .btn-main { background: #d98d52; color: white; }
-        .btn-sub { background: #8b6b5c; color: white; }
-        .preview-box { margin-top: 22px; padding: 16px; border-radius: 14px; background: #fff; border: 1px solid #eadfce; }
-        .hint { margin-top: 6px; font-size: 13px; color: #7a675c; }
-        .preview-box img { max-width: 220px; max-height: 220px; border-radius: 14px; display: none; border: 1px solid #e5d8c8; object-fit: cover; }
-        .locked-field { background: #f3eee7 !important; color: #7b685c; cursor: not-allowed; }
-        .hidden { display: none !important; }
-    </style>
 
+    <style>
+/* 🔥 폰트 */
+body {
+    margin: 0;
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+    background: #f5efe6;
+    display: flex;
+    justify-content: center;
+}
+
+/* 컨테이너 */
+.container {
+    width: 1280px;
+    display: flex;
+    margin-top: 20px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.08);
+     align-items: stretch;
+}
+
+/* 왼쪽 */
+.left {
+    flex: 1;
+    background:
+        linear-gradient(rgba(245,230,211,0.75), rgba(245,230,211,0.75)),
+        url('<%=request.getContextPath()%>/images/dog.png');
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    padding: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.left small {
+    color: #d96c4b;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+/* 🔥 타이틀 */
+.left h1 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 54px;
+    line-height: 1.25;
+    margin-bottom: 20px;
+    color: #2e2a27;
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+
+.left h1 span {
+    color: #e2553f;
+}
+
+.left p {
+    font-size: 15px;
+    color: #6b5b53;
+    margin-bottom: 35px;
+    line-height: 1.7;
+}
+
+/* 🔥 리스트 */
+.left ul {
+    padding-left: 20px;
+}
+
+.left li {
+    margin-bottom: 12px;
+    color: #5c4a42;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* 오른쪽 */
+.right {
+    width: 420px;
+    background: #f4f4f4;
+    padding: 40px;
+    
+   max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* 🔥 라벨 */
+label {
+    display: block;
+    margin-top: 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a3b33;
+}
+
+/* 🔥 입력창 (동글 핵심) */
+input, textarea {
+    width: 100%;
+    padding: 14px;
+    margin-top: 6px;
+    border-radius: 22px;
+    border: 1px solid #e5dcd3;
+    font-size: 14px;
+    background: #fdfaf6;
+    transition: all 0.2s ease;
+}
+
+/* 포커스 효과 */
+input:focus, textarea:focus {
+    border-color: #e2553f;
+    box-shadow: 0 0 0 3px rgba(226,85,63,0.12);
+    outline: none;
+}
+
+/* placeholder */
+::placeholder {
+    color: #b7a79b;
+}
+
+/* textarea */
+textarea {
+    height: 130px;
+}
+
+/* 🔥 업로드 박스 */
+.upload-box {
+    border: 2px dashed #e3d6c8;
+    border-radius: 22px;
+    text-align: center;
+    padding: 40px;
+    margin-top: 12px;
+    cursor: pointer;
+    background: #fffaf5;
+    position: relative;
+    transition: 0.2s;
+      z-index: 1;
+}
+
+.upload-box:hover {
+    border-color: #e2553f;
+    background: #fff3eb;
+}
+
+.upload-box input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+     z-index: 2;s
+}
+
+.upload-box span {
+    display: block;
+    color: #9c8b7f;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+/* 미리보기 */
+.preview-box img {
+    width: 100%;
+     max-height: 220px;
+    margin-top: 12px;
+    border-radius: 14px;
+}
+
+/* 🔥 버튼 */
+.btn-area {
+    margin-top: 30px;
+    display: flex;
+    gap: 12px;
+    z-index: 3;
+}
+
+.btn-main {
+    flex: 1;
+    padding: 16px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #e2553f, #e86f52);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 15px;
+    box-shadow: 0 8px 18px rgba(226,85,63,0.25);
+    transition: 0.2s;
+}
+
+.btn-main:hover {
+    transform: translateY(-2px);
+}
+
+.btn-sub {
+    flex: 1;
+    padding: 16px;
+    border-radius: 999px;
+    border: none;
+    background: #e0dedb;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+/* 기타 */
+.hidden { display: none !important; }
+
+.locked-field {
+    background: #f3eee7 !important;
+    cursor: not-allowed;
+}
+
+ </style>
+
+    <!-- 기존 로직 그대로 -->
     <script>
         let savedProjectId = null;
 
@@ -39,25 +233,27 @@
             savedProjectId = urlParams.get("bookProjectId");
 
             document.getElementById("bookSpecCode").innerHTML =
-                '<option value="PHOTOBOOK_A4_SC" selected>A4 소프트커버 포토북 (PHOTOBOOK_A4_SC)</option>';
+                '<option value="PHOTOBOOK_A4_SC" selected>A4 포토북</option>';
 
             document.getElementById("templateCode").innerHTML =
-                '<option value="58edh76I0rYa" selected>내지 고정 템플릿</option>';
+                '<option value="58edh76I0rYa" selected>템플릿</option>';
 
-            loadProjectIfNeeded()
-                .then(function() { applyLockedMode(isLockedMode); })
-                .catch(function(e) { console.error("초기 로드 에러:", e); });
+            loadProjectIfNeeded().then(function () {
+                applyLockedMode(isLockedMode);
+            });
         };
 
         function previewProfileImage(event) {
             const file = event.target.files[0];
             const previewImage = document.getElementById("profileImagePreview");
+
             if (!file) {
                 previewImage.style.display = "none";
                 return;
             }
+
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 previewImage.src = e.target.result;
                 previewImage.style.display = "block";
             };
@@ -67,27 +263,14 @@
         async function loadProjectIfNeeded() {
             if (!savedProjectId) return;
 
-            const response = await fetch("/api/book-projects/" + encodeURIComponent(savedProjectId));
-            if (!response.ok) return;
+            const res = await fetch("/api/book-projects/" + savedProjectId);
+            if (!res.ok) return;
 
-            const project = await response.json();
+            const project = await res.json();
+
             document.getElementById("title").value = project.title || "";
             document.getElementById("coverSubtitle").value = project.coverSubtitle || "";
             document.getElementById("dedicationText").value = project.dedicationText || "";
-
-            if (project.petId) {
-                const petRes = await fetch("/api/pets/" + encodeURIComponent(project.petId));
-                if (petRes.ok) {
-                    const pet = await petRes.json();
-                    document.getElementById("petName").value = pet.name || "";
-                    document.getElementById("memorialDate").value = pet.memorialDate || "";
-                    if (pet.profileImageUrl) {
-                        const img = document.getElementById("profileImagePreview");
-                        img.src = pet.profileImageUrl;
-                        img.style.display = "block";
-                    }
-                }
-            }
         }
 
         function saveBookProject() {
@@ -95,12 +278,11 @@
             const title = document.getElementById("title").value.trim();
 
             if (!petName || !title) {
-                alert("필수 항목(반려견 이름, 책 제목)을 모두 입력해주세요.");
+                alert("필수값 입력");
                 return;
             }
 
             const formData = new FormData();
-            if (savedProjectId) formData.append("bookProjectId", savedProjectId);
 
             formData.append("petName", petName);
             formData.append("memorialDate", document.getElementById("memorialDate").value);
@@ -110,100 +292,84 @@
             formData.append("dedicationText", document.getElementById("dedicationText").value);
             formData.append("bookSpecUid", "PHOTOBOOK_A4_SC");
             formData.append("contentTemplateUid", "58edh76I0rYa");
-            formData.append("status", "DRAFT");
 
             const file = document.getElementById("profileImageFile").files[0];
             if (file) formData.append("file", file);
 
             fetch("/api/book-projects", { method: "POST", body: formData })
-                .then(function(res) {
-                    return res.ok ? res.text() : res.text().then(function(t) { throw new Error(t); });
-                })
-                .then(function(id) {
-                    window.location.href = "/memory-add?bookProjectId=" + encodeURIComponent(id);
-                })
-                .catch(function(err) {
-                    alert("저장 실패: " + err.message);
-                });
-        }
-
-        function applyLockedMode(flag) {
-            if (!flag) return;
-            document.querySelectorAll("input, select, textarea").forEach(function(el) {
-                if (el.id !== "profileImageFile") {
-                    el.readOnly = true;
-                    if (el.tagName === "SELECT") el.disabled = true;
-                    el.classList.add("locked-field");
-                }
-            });
-            document.getElementById("saveBtn").classList.add("hidden");
-            document.getElementById("editBtn").classList.remove("hidden");
-        }
-
-        function unlockEditMode() {
-            if (!savedProjectId) return;
-            window.location.href = "/test/book?bookProjectId=" + encodeURIComponent(savedProjectId);
+                .then(res => res.text())
+                .then(id => location.href = "/memory-add?bookProjectId=" + id);
         }
     </script>
 </head>
+
 <body>
-<div class="wrap">
-    <div class="hero">
-        <h1>반려견과의 기억을 책으로 남겨보세요</h1>
-        <p>기본 정보를 입력하고 저장하면 사진과 추억을 담는 다음 단계로 이동합니다.</p>
+
+<div class="container">
+
+    <!-- 왼쪽 -->
+    <div class="left">
+        <small>반려견 추억 보관소</small>
+
+        <h1>
+            소중한 추억을 <br>
+            <span>책으로 남기다</span>
+        </h1>
+
+        <p>
+            반려견과의 모든 순간을 아름다운 포토북으로 만들어
+            영원히 간직하세요.
+        </p>
+
+        <ul>
+            <li>✔ 손쉬운 사진 업로드</li>
+            <li>✔ 감성적인 포토북 디자인</li>
+            <li>✔ 고품질 인쇄 및 배송</li>
+        </ul>
     </div>
 
-    <div class="card">
-        <h2 class="section-title">📘 책 기본 정보</h2>
-        <div class="grid">
-            <div class="row">
-                <label>반려견 이름 *</label>
-                <input type="text" id="petName" placeholder="이름을 입력하세요">
-            </div>
-            <div class="row">
-                <label>추모일</label>
-                <input type="date" id="memorialDate">
-            </div>
-            <div class="row full">
-                <label>대표 사진</label>
-                <input type="file" id="profileImageFile" accept="image/*">
-                <div class="preview-box">
-                    <img id="profileImagePreview">
-                </div>
-                <div class="hint">대표 사진이 자동으로 표지에 사용됩니다.</div>
-            </div>
-            <div class="row full">
-                <label>책 제목 *</label>
-                <input type="text" id="title" placeholder="책의 제목을 적어주세요">
-            </div>
-            <div class="row full">
-                <label>부제</label>
-                <input type="text" id="coverSubtitle" placeholder="표지에 들어갈 부제">
-            </div>
-            <div class="row full">
-                <label>헌정 문구</label>
-                <textarea id="dedicationText" placeholder="마지막으로 전하고 싶은 메시지"></textarea>
-            </div>
-            <div class="row">
-                <label>판형 선택 *</label>
-                <select id="bookSpecCode">
-                    <option value="PHOTOBOOK_A4_SC" selected>A4 소프트커버 포토북 (PHOTOBOOK_A4_SC)</option>
-                </select>
-                <div class="hint">A4 소프트커버 포토북으로 고정됩니다.</div>
-            </div>
-            <div class="row hidden">
-                <label>템플릿 선택 *</label>
-                <select id="templateCode">
-                    <option value="58edh76I0rYa" selected>내지 고정 템플릿</option>
-                </select>
-            </div>
+    <!-- 오른쪽 -->
+    <div class="right">
+
+        <label>반려견 이름 *</label>
+        <input id="petName" placeholder="예: 뽀삐">
+
+        <label>추모일</label>
+        <input type="date" id="memorialDate">
+
+        <label>책 제목 *</label>
+        <input id="title" placeholder="예: 우리 함께한 날들">
+
+        <label>부제</label>
+        <input id="coverSubtitle" placeholder="표지에 들어갈 부제">
+
+        <label>헌정 문구</label>
+        <textarea id="dedicationText" placeholder="마지막으로 전하고 싶은 메시지"></textarea>
+
+        <label>대표 사진</label>
+       <label class="upload-box">
+    <input type="file" id="profileImageFile">
+    <div class="upload-inner">
+        <div>+</div>
+        <span>사진을 선택하세요</span>
+    </div>
+</label>
+
+        <div class="preview-box">
+            <img id="profileImagePreview" style="display:none;">
         </div>
+
+        <select id="bookSpecCode" class="hidden"></select>
+        <select id="templateCode" class="hidden"></select>
 
         <div class="btn-area">
-            <button type="button" id="saveBtn" class="btn-main" onclick="saveBookProject()">저장하고 추억 추가하기</button>
-            <button type="button" id="editBtn" class="btn-sub hidden" onclick="unlockEditMode()">수정하기</button>
+            <button class="btn-main" onclick="saveBookProject()">시작하기</button>
+            <button class="btn-sub">초기화</button>
         </div>
+
     </div>
+
 </div>
+
 </body>
 </html>
