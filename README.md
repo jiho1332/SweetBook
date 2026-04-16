@@ -39,13 +39,16 @@
 ./gradlew build
 ```
 
+---
+
 ### ▶ 서버 실행
 
 ```bash
 ./gradlew bootRun
 ```
 
-또는 STS / IntelliJ에서 Spring Boot 실행
+또는
+STS / IntelliJ에서 Spring Boot 실행
 
 ---
 
@@ -59,9 +62,38 @@ http://localhost:8081/test/book
 
 ## 3. 환경 설정
 
+### 📌 DB 설정
+
+1. MySQL에서 DB 생성
+
+```sql
+CREATE DATABASE sweetbook_db;
+```
+
+2. 아래 SQL 파일 실행
+
+* `sql/01_schema.sql`
+* `sql/02_data.sql`
+
+※ 기본 데이터가 있어야 정상 동작합니다.
+
+---
+
 ### 📌 application.properties 설정
 
 ```properties
+server.port=8081
+
+spring.datasource.url=jdbc:mysql://localhost:3306/sweetbook_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+spring.datasource.username=본인계정
+spring.datasource.password=비밀번호
+
+mybatis.mapper-locations=classpath:/mapper/*.xml
+mybatis.type-aliases-package=com.sweetbook.vo
+
+spring.mvc.view.prefix=/WEB-INF/views/
+spring.mvc.view.suffix=.jsp
+
 sweetbook.api.base-url=https://api.sweetbook.com/v1
 sweetbook.api.key=발급받은_API_KEY
 ```
@@ -113,13 +145,21 @@ sweetbook.api.key=발급받은_API_KEY
 ## 6. 프로젝트 구조
 
 ```
-com.sweetbook
- ├── controller        # API 및 페이지 컨트롤러
- ├── service           # 비즈니스 로직
- ├── mapper            # MyBatis Mapper
- ├── vo                # 데이터 모델
- ├── config            # 설정 클래스
- └── jsp               # 화면 (JSP)
+SweetBook-Project
+ ├─ src
+ │   └─ main
+ │       ├─ java/com/sweetbook
+ │       │   ├─ controller
+ │       │   ├─ service
+ │       │   ├─ mapper
+ │       │   ├─ vo
+ │       │   └─ config
+ │       └─ webapp/WEB-INF/views
+ ├─ sql
+ │   ├─ 01_schema.sql
+ │   └─ 02_data.sql
+ ├─ build.gradle
+ └─ README.md
 ```
 
 ---
@@ -181,5 +221,23 @@ com.sweetbook
 ## 9. 주의사항
 
 * API Key는 절대 GitHub에 커밋하지 않습니다.
-* `.gitignore`에 민감 정보 파일 포함
-* SweetBook Sandbox 환경에서 테스트 진행
+* `.gitignore`에 민감 정보 파일을 포함해야 합니다.
+* SweetBook Sandbox 환경에서 테스트를 진행합니다.
+* DB 초기 데이터가 없으면 정상 동작하지 않습니다.
+
+---
+
+## 10. 실행 순서 요약
+
+1. DB 생성
+2. SQL 실행
+3. application.properties 설정
+4. 서버 실행
+5. `/test/book` 접속
+
+---
+
+## 11. 프로젝트 목적
+
+본 프로젝트는 단순한 포토북 제작 서비스가 아니라
+반려견과의 추억을 기록하고 이를 하나의 이야기 형태의 책으로 제작하는 감성 기반 서비스입니다.
