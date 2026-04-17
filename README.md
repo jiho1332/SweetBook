@@ -139,6 +139,20 @@ sweetbook.api.key=발급받은_API_KEY
    ↓
 주문 (Orders API)
 ```
+## 📌 미리보기 이후 책 생성 처리 과정
+
+미리보기 화면에서 사용자가 책 생성을 요청하면
+SweetBook API를 순차적으로 호출하여 실제 책을 생성합니다.
+
+책 생성 (POST /books)
+표지 추가 (POST /books/{bookUid}/cover)
+내지 추가 (POST /books/{bookUid}/contents)
+Memory 데이터를 기반으로 반복 처리
+책 완성 (POST /books/{bookUid}/finalization)
+주문 처리 (POST /orders)
+
+특히 내지 추가 단계에서는 여러 개의 추억 데이터를 반복 처리해야 하므로
+forEach 기반 반복 구조를 활용하여 페이지를 순차적으로 생성하도록 구현하였습니다.
 
 ---
 
